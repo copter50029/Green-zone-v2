@@ -24,3 +24,7 @@ Ran the example on existing Theos00 tile_r7_c9.tif with experimental bands 3/4: 
 Band mapping/calibration still unverified; ratio detection alone cannot guarantee roof/private-garden rejection. No real labels/accuracy or automatic public-access verification. run_nike.py is a bounded raster example; complete-scene tiled inference and core merging remain the integration task before final patch filtering and whole-scene statistics. grid.py's partial-tile skipping and sampled valid fraction are documented, not changed.
 
 Frontend should consume georeferenced outputs; this package does not add HTTP/XYZ serving. Human park checks and confirmed entrances are still required before scoring public access.
+
+## Publication status
+
+Local Git push could not invoke credential manager (MSYS directory object access error), so no authenticated push occurred. The connected GitHub account reported push permission, but the subsequent create-tree tool call was rejected with "user rejected MCP tool call". No remote branch or PR was created by this work. docs/PULL_REQUEST.md contains the prepared description and manual publish command. No alternate publication was attempted after the rejection.
