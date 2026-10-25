@@ -9,11 +9,11 @@ from .heatmap import make_heatmap
 from .park_verify import prepare_park_review
 from .scene import read_json,write_json,digest
 from .report import write_report
-from .exclusions import exclude_context
+from .exclusions import exclude_context, exclude_policy_areas
 
 
 def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='data/parks15.geojson',
-                        contexts=None, building_buffer_m=2, house_buffer_m=0, residential_buffer_m=0):
+                        contexts=None, building_buffer_m=2, house_buffer_m=0, residential_buffer_m=0, policy_exclusions=None):
     """Remove narrow/small candidate fragments, recheck >=300m2, rebuild halos.
 
     Works on globally merged masks. Never adds candidate pixels; previous
@@ -22,13 +22,16 @@ def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='da
     source,output=Path(run_dir),Path(out_dir)
     if output.exists(): raise FileExistsError('Choose a new output directory')
     results=read_json(source/'summary-all.json'); registry=read_json(registry_path)
+    policy=read_json(policy_exclusions) if policy_exclusions else None
+    if policy:
+        exclude_policy_areas(np.zeros((1,1),dtype='uint8'),policy,rasterio.Affine(1,0,0,0,-1,1),'EPSG:32647',scene_id='preflight')
     make_heatmap([[0]],.5,clean_radius_m=clean_radius_m)
     for old in results:
         scene=old['scene_id']
         if Path(scene).name!=scene or scene in ('.','..') or '/' in scene or '\\' in scene:
             raise ValueError('Invalid scene ID')
         if read_json(source/scene/'status.json')['status']!='complete': raise ValueError('Incomplete source run')
-        for name in ('candidate-mask.tif','source.png'):
+        for name in ('candidate-mask.tif','heatmap.tif','source.png'):
             if digest(source/scene/name)!=old['artifact_sha256'][name]: raise ValueError('Source hash mismatch')
         if digest(registry_path)!=old['provenance']['registry_sha256']: raise ValueError('Registry snapshot changed')
     if contexts:
@@ -49,7 +52,12 @@ def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='da
             if contexts:
                 filtered,eligibility_report,blocked=exclude_context(mask,read_json(contexts[scene]),src.transform,src.crs,
                     building_buffer_m=building_buffer_m,house_buffer_m=house_buffer_m,residential_buffer_m=residential_buffer_m,return_exclusion_mask=True)
+            if policy:
+                filtered,policy_mask=exclude_policy_areas(filtered,policy,src.transform,src.crs,scene_id=scene)
+                blocked=policy_mask if blocked is None else blocked|policy_mask
             cleaned=make_heatmap(filtered,old['pixel_m'],old['minimum_patch_m2'],old['halo_radius_m'],clean_radius_m=clean_radius_m)
+            with rasterio.open(source/scene/'heatmap.tif') as parent_heat:
+                cleaned['rgba'][parent_heat.read(4)==0]=0
             if blocked is not None:
                 cleaned['rgba'][blocked]=0
             assert not ((cleaned['mask']==1)&(mask!=1)).any()
@@ -76,6 +84,9 @@ def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='da
             s['halo_clipped_to_exclusion_mask']=True
             s['eligibility_status']='conservative_screening_not_verified_public_land'
             s['limitations'].append('House/residential buffers deliberately exclude ambiguous neighbouring vegetation; incomplete mapping can still miss private yards.')
+        if policy:
+            s['policy_exclusions_sha256']=digest(policy_exclusions)
+            s['policy_exclusions_basis']='assistant visual area interpretation; conservative exclusion, ownership unknown'
         s['provenance']['code_sha256']={p.name:digest(p) for p in Path(__file__).parent.glob('*.py')}
         s['limitations'].append('Morphology removes narrow vegetation and canopy fringes too; it does not prove semantic accuracy.')
         s['artifact_sha256']={name:digest(folder/name) for name in ('candidate-mask.tif','heatmap.tif','park-review.geojson','source.png','heatmap.png')}

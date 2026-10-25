@@ -43,3 +43,11 @@ result = analyse_scene(
 ผลล่าสุด: Output/nike-public-final-20261025 และ Output/frontend-public-20261025 ชุดตรวจ eligibility labels: Output/eligible-label-review-20261025 ภาพหลักฐาน labels เดิมยังอยู่ที่ Output/labels-assistant-20261025
 
 ในการประมวลผลซ้ำจากผลเดิม ต้องใช้ context bytes ที่ hashes ตรงกับ parent เดิม สำเนาที่ git เก็บมีเนื้อหาเดียวกับ data ปัจจุบัน แต่รูปแบบ CRLF/BOM ต่างกัน จึงกู้ bytes จาก commit 1817988 และตรวจ SHA256 ตรงก่อนใช้ ไม่เปลี่ยนเนื้อหาข้อมูลเพื่อให้ผ่าน hash
+
+## แก้กรณีที่ผู้ใช้ชี้ใต้ลานสนามบิน
+
+เพิ่ม area-exclusions.geojson เป็น polygon บริบทบ้านจากการตีความ source preview Theos00 ขนาด 1000×1000 ซึ่งตรงกับ native crop 6000×6000 จึงแปลงพิกัดกรอบด้วย affine เดิมได้ ไม่เลื่อนหมุดหรือภาพ ใช้เฉพาะ target eligible_green ไม่เปลี่ยน vegetation truth ให้ผิดความหมาย
+
+กรอบนี้เป็น assistant visual policy exclusion ตามการชี้แก้ของผู้ใช้ ไม่ใช่ขอบกรรมสิทธิ์ที่ตรวจรับรองแล้ว คัดทั้ง green core และ alpha ของ halo ออกจากกรอบ และตั้งใน data/scenes.json เพื่อรันซ้ำได้ ผลแยกที่ Output/nike-house-correction-20261025; Theos00 เหลือ candidate 363144.25 ตร.ม. อีกสองภาพไม่เปลี่ยน พื้นที่สีเขียวลดลง 9498.75 ตร.ม. จากรอบก่อน ไม่ใช่พื้นที่ polygon ทั้งกรอบ
+
+clean_saved_results เก็บบริเวณ alpha=0 ของ parent ไว้ด้วย เพื่อไม่ให้การสร้าง halo รอบใหม่ระบายกลับเข้า exclusion เดิม ทดสอบ regression ด้วย polygon ที่ใช้เฉพาะ scene และรักษา NoData/ข้อมูลต้นฉบับ รวมชุดทดสอบทั้งหมด 44 ข้อผ่าน

@@ -29,5 +29,6 @@
   "clean_radius_m": 3,
   "building_buffer_m": 8,
   "house_buffer_m": 20,
-  "residential_buffer_m": 10
+  "residential_buffer_m": 10,
+  "policy_exclusions": "data/labels/area-exclusions.geojson"
 }

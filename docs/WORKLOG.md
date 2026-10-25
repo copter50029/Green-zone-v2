@@ -61,3 +61,9 @@ OSM context snapshots were formatted to one GeoJSON feature per line to keep cod
 - Recomputed three native masks: 372643.00 / 2379871.75 / 451337.00 m2; verified no added candidates, preserved NoData and native area counts; sampled mapped-building cores for mask exclusion and alpha zero.
 - Restored original cached-context bytes from Git plus matching newline/BOM variants and verified parent SHA256; archived context-used.geojson alongside outputs.
 - Generated frontend-public-20261025 and final-public-review-20261025; full suite 43 passed. Mapping remains incomplete; no claim all private gardens are eliminated, no new ML accuracy claim, no remote publication.
+
+### 2026-10-25 — User-corrected housing block
+- Accepted user correction: green cores below the Theos00 airport apron sit within visible housing context and should not count under conservative public-green policy.
+- Added source-grid WGS84 area-exclusions.geojson (assistant interpretation, unknown ownership) and reusable scene-specific policy exclusion in full-scene and cached processing.
+- Removed core/halo in the polygon, preserved parent alpha exclusions, original vegetation labels and previous runs. Theos00 372643 -> 363144.25m2; other two scene areas unchanged.
+- Rebuilt three-scene frontend handoff; 44 software tests passed. Not a claim that automatic private-yard detection is complete.

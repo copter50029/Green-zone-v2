@@ -67,3 +67,20 @@ def exclude_context(mask, context, transform, crs, *, building_buffer_m=2, house
                     'scope': 'outside_mapped_buildings_residential_and_private_areas_not_verified_public_land'}
 
     return (result,report,blocked) if return_exclusion_mask else (result,report)
+
+
+def exclude_policy_areas(mask, policy, transform, crs, *, scene_id):
+    """Apply explicit visual-policy polygons; never infer land ownership."""
+    if policy.get('target')!='eligible_green' or policy.get('purpose')!='area_exclusion':
+        raise ValueError('Explicit eligible-green area exclusions required')
+    shapes=[]
+    for feature in policy.get('features',[]):
+        p=feature.get('properties') or {};g=feature.get('geometry') or {}
+        if (p.get('policy_decision')!='exclude_residential_context' or p.get('class')!='negative'
+                or not p.get('scene_id') or g.get('type') not in ('Polygon','MultiPolygon') or not is_valid_geom(g)):
+            raise ValueError('Valid explicit exclusion polygons required')
+        if p['scene_id']==scene_id:
+            shapes.append(transform_geom('EPSG:4326',crs,g))
+    blocked=rasterize(shapes,out_shape=mask.shape,transform=transform,fill=0,default_value=1,dtype='uint8').astype(bool) if shapes else np.zeros(mask.shape,dtype=bool)
+    result=mask.copy();result[blocked & (result!=255)]=0
+    return result,blocked

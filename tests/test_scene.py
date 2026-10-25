@@ -97,6 +97,20 @@ class SceneTests(unittest.TestCase):
         self.assertGreater(report['removed_candidate_m2']['house_context'],0)
         self.assertEqual(int((mask==1).sum())-int((strict==1).sum()),sum(report['removed_candidate_m2'].values()))
 
+    def test_visual_area_policy_is_scene_specific_and_preserves_nodata(self):
+        from greensight.exclusions import exclude_policy_areas
+        grid=from_origin(670000,1540000,1,1)
+        g={'type':'Polygon','coordinates':[[[670002,1539998],[670006,1539998],[670006,1539994],[670002,1539994],[670002,1539998]]]}
+        policy={'target':'eligible_green','purpose':'area_exclusion','features':[{'geometry':transform_geom('EPSG:32647','EPSG:4326',g),'properties':{'scene_id':'a','class':'negative','policy_decision':'exclude_residential_context'}}]}
+        mask=np.ones((10,10),dtype='uint8');mask[3,3]=255
+        result,blocked=exclude_policy_areas(mask,policy,grid,'EPSG:32647',scene_id='a')
+        self.assertTrue(blocked[4,4]);self.assertEqual(result[4,4],0)
+        self.assertEqual(result[3,3],255);self.assertEqual(mask[4,4],1)
+        other,none=exclude_policy_areas(mask,policy,grid,'EPSG:32647',scene_id='b')
+        np.testing.assert_array_equal(other,mask);self.assertFalse(none.any())
+        with self.assertRaises(ValueError):
+            exclude_policy_areas(mask,{'target':'vegetation'},grid,'EPSG:32647',scene_id='a')
+
 
 if __name__=='__main__':
     unittest.main()

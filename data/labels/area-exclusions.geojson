@@ -1,0 +1,79 @@
+{
+  "type": "FeatureCollection",
+  "target": "eligible_green",
+  "purpose": "area_exclusion",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "Theos00-housing-block-user-correction-001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              100.58593411123933,
+              13.919075149623277
+            ],
+            [
+              100.59668662791915,
+              13.916347514547388
+            ],
+            [
+              100.5957258885696,
+              13.913886173968855
+            ],
+            [
+              100.58519683561795,
+              13.91680212263173
+            ],
+            [
+              100.58593411123933,
+              13.919075149623277
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "scene_id": "Theos00",
+        "class": "negative",
+        "object_type": "residential_context",
+        "origin": "assistant_visual",
+        "review_status": "assistant_policy_interpreted",
+        "human_review_status": "pending",
+        "policy_decision": "exclude_residential_context",
+        "reviewer": "Codex visual interpretation following user correction",
+        "observed_on": "2026-10-25",
+        "ownership": "unknown",
+        "public_access": "unknown",
+        "source_preview": "Theos00/source.png",
+        "preview_size": [
+          1000,
+          1000
+        ],
+        "preview_ring": [
+          [
+            225,
+            603
+          ],
+          [
+            613,
+            701
+          ],
+          [
+            579,
+            792
+          ],
+          [
+            199,
+            687
+          ],
+          [
+            225,
+            603
+          ]
+        ],
+        "reason": "Residential block visible below the airport apron; user explicitly rejected counting house trees. Excluded conservatively, not a cadastral claim."
+      }
+    }
+  ]
+}
