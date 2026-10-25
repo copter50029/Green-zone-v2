@@ -86,3 +86,12 @@ OSM context snapshots were formatted to one GeoJSON feature per line to keep cod
 - User explicitly retained all three images as separate geographic cases. Don Mueang-filtered lookup: Theos00=2; Theos01=0; Theos02=0. Theos01 is outside Bangkok; no-match is not proof of no parks.
 - Backend-only tests: 46 passed on installed Python 3.12.14 fallback runtime. Real TIFF 2000x2000 smoke + exhaustive audit passed with 4000000 valid pixels / 6597.75m2 candidate / no HTML. Rasterio emitted the expected non-georeferenced PNG-preview warning; native GeoTIFF audit passed.
 - Rewrote README and backend handoff docs around functions, policies, outputs and explicit verification limits. Prior work-log entries describe historical scope, not active web functionality. No GitHub publication.
+
+### 2026-10-25 — Organized backend handoff and English README
+- Reorganized 45 files/folders without changing image or saved analysis bytes. Data now separates registry, assistant/human labels, policy polygons and visual-review decisions.
+- Current reference results are Output/latest/{analysis,parks,smoke}; evidence/logs/older runs are separate. Kept Output/grid_2000 and grid.py at their existing team paths.
+- Moved detailed method documents into docs/methods, old drafts into docs/archive, and the duplicate root label work log into docs/archive. Added concise documentation/data/output indexes.
+- Renamed requirements-nike.txt to requirements.txt; updated active Python defaults, CLI output defaults, config and document links. New runs default under Output/runs rather than the saved reference folders.
+- Rewrote README in simple English with six steps: install, inputs, detection/heatmaps, park lookup, output interpretation, testing/handoff. Preserved verification limits and backend-only scope.
+- Checks: 46 tests passed; actual three-image registry lookup remained 2/0/0; real 2000x2000 TIFF smoke/audit passed with 4000000 valid pixels and 6597.75m2 candidate; all 24 saved native artifact hashes and 14 active document links checked.
+- Frozen historical provenance is not rewritten. Output/layout-manifest.json maps old paths; Output/latest/index.json identifies saved reference snapshots. No GitHub publication.

@@ -1,5 +1,5 @@
 {
-  "registry": "data/parks15.geojson",
+  "registry": "data/registry/parks15.geojson",
   "scenes": [
     {
       "id": "Theos00",
@@ -30,7 +30,7 @@
   "building_buffer_m": 8,
   "house_buffer_m": 20,
   "residential_buffer_m": 10,
-  "policy_exclusions": "data/labels/area-exclusions.geojson",
-  "pending_areas": "data/labels/pending-areas.geojson",
+  "policy_exclusions": "data/labels/policies/area-exclusions.geojson",
+  "pending_areas": "data/labels/policies/pending-areas.geojson",
   "min_area_m2": 300
 }

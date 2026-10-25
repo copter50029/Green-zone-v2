@@ -6,7 +6,7 @@
 
 มีตัวอย่างต้นไม้/พืช หลังคาขาว น้ำเงิน เข้ม และเขียว ถนน ลาน เครื่องบิน ทางดิน และน้ำ เก็บต้นไม้ในบ้านเป็นพืชสำหรับ target=vegetation การเป็นสวนสาธารณะหรือการเข้าใช้ต้องใช้หลักฐานอีกชุด ห้ามเปลี่ยนความหมาย target เพื่อให้คะแนนดูดี
 
-ไฟล์: `data/labels/assistant-vegetation.geojson` เก็บ scene, source_window, geometry EPSG:4326, class, object_type, split, region_id, เหตุผล และผู้ตีความ รูปและผล QA อยู่ `Output/labels-assistant-20261025/` ในเครื่อง
+ไฟล์: `data/labels/assistant/assistant-vegetation.geojson` เก็บ scene, source_window, geometry EPSG:4326, class, object_type, split, region_id, เหตุผล และผู้ตีความ รูปและผล QA อยู่ `Output/evidence/labels/` ในเครื่อง
 
 ## การตรวจและการแก้คำตอบ
 
@@ -28,10 +28,10 @@ origin=assistant_visual และ human_review_status=pending ทุกตัว
 import json
 from greensight import validate_labels
 
-with open('data/labels/assistant-vegetation.geojson', encoding='utf-8') as f:
+with open('data/labels/assistant/assistant-vegetation.geojson', encoding='utf-8') as f:
     labels = json.load(f)
 qa = validate_labels(labels, 'Images', minimum_split_gap_m=50,
-                     evidence_dir='Output/labels-assistant-20261025')
+                     evidence_dir='Output/evidence/labels')
 print(qa['usable_assistant_labels'], qa['withheld_uncertain'])
 ```
 

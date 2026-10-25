@@ -2,7 +2,7 @@
 
 ## ขอบเขตและเหตุผล
 
-งาน Nike ใน Green-zone-v2 มีทางเรียกเดียว `run_nike.py --all` สำหรับ Theos00/01/02 แยกจาก grid.py ของทีม ไม่ย้าย TIFF หรือลบการแก้ชื่อภาพที่ผู้ใช้ทำไว้ โฟลเดอร์ผลครั้งนี้ `Output/nike-scenes-20261025` อยู่เฉพาะเครื่อง ไม่มีการ push/เปิด PR
+งาน Nike ใน Green-zone-v2 มีทางเรียกเดียว `run_nike.py --all` สำหรับ Theos00/01/02 แยกจาก grid.py ของทีม ไม่ย้าย TIFF หรือลบการแก้ชื่อภาพที่ผู้ใช้ทำไว้ โฟลเดอร์ผลครั้งนี้ `Output/archive/runs/nike-scenes-20261025` อยู่เฉพาะเครื่อง ไม่มีการ push/เปิด PR
 
 ผลใช้ valid pixels ทั้งหมดของ TIFF ไม่ตัดตามกรอบ polygon เดิม ดังนั้นพื้นที่ฐานต่างจากรายงานเก่าที่ใช้กรอบศึกษาเอียง แต่ละภาพมี valid 36,000,000 พิกเซล = 9,000,000 ตร.ม. ผลบน mask/heatmap ที่ crop เป็น 6000×6000 พิกเซลยังอยู่บนกริด native 0.5 เมตรเดิม
 
@@ -43,7 +43,7 @@
 
 ตัวอย่าง test เป็น synthetic fixtures เท่านั้น ไม่ใช่ labels จริง จำนวน reference polygons ที่คนตรวจแล้วยัง 0 จึง `real_accuracy=null` และ evaluation status เป็น `reviewed_labels_required` เตรียม templates แยก vegetation/eligible_green และฟังก์ชัน evaluate_mask แล้ว ไม่ใช้ pseudo-labels หรือ OSM masks เป็นคำตอบ test
 
-`Output/nike-scenes-20261025/review-samples.geojson` มี 51 จุดตรวจ draft ทั้งจาก spatial grid/candidate/noncandidate ไม่มี class/reviewer/split ที่ยืนยัน ผู้ตรวจต้องตีความภาพและสร้าง polygon references แยกพื้นที่/วันอย่างอิสระก่อนใช้ประเมิน ไม่ใช้คิวที่เลือกจากโมเดลนี้เป็นตัวแทนประชากรโดยไม่ออกแบบ sampling เพิ่ม
+`Output/archive/runs/nike-scenes-20261025/review-samples.geojson` มี 51 จุดตรวจ draft ทั้งจาก spatial grid/candidate/noncandidate ไม่มี class/reviewer/split ที่ยืนยัน ผู้ตรวจต้องตีความภาพและสร้าง polygon references แยกพื้นที่/วันอย่างอิสระก่อนใช้ประเมิน ไม่ใช้คิวที่เลือกจากโมเดลนี้เป็นตัวแทนประชากรโดยไม่ออกแบบ sampling เพิ่ม
 
 ## Park verification
 
@@ -76,7 +76,7 @@
 
 ## ผลปรับปรุงล่าสุด: คัดบริบทบ้านออก (25 ตุลาคม 2569)
 
-ตามผู้ใช้เลือกให้กันพื้นที่กำกวมใกล้บ้านออกก่อน เพิ่มระยะคัดอาคาร/บ้าน/residential เป็น 8/20/10 เมตร และ morphology รัศมี 3 เมตร ก่อนคัดกลุ่ม 300 ตร.ม. ซ้ำ ตัดสี halo จาก exclusion mask ด้วย ผลใหม่แยกที่ `Output/nike-public-final-20261025` ไม่เขียนทับการทดลองเดิมในรายงานนี้
+ตามผู้ใช้เลือกให้กันพื้นที่กำกวมใกล้บ้านออกก่อน เพิ่มระยะคัดอาคาร/บ้าน/residential เป็น 8/20/10 เมตร และ morphology รัศมี 3 เมตร ก่อนคัดกลุ่ม 300 ตร.ม. ซ้ำ ตัดสี halo จาก exclusion mask ด้วย ผลใหม่แยกที่ `Output/archive/runs/nike-public-final-20261025` ไม่เขียนทับการทดลองเดิมในรายงานนี้
 
 | ภาพ | พื้นที่ candidate หลังคัดเข้ม ตร.ม. |
 | --- | ---: |
@@ -87,7 +87,7 @@
 
 ## ผลตรวจครบสามภาพล่าสุด 25 ตุลาคม 2569
 
-ผล authoritative เปลี่ยนเป็น Output/nike-reviewed-final-20261025 หลังเพิ่มกรอบบริบทบ้านอีก 86 เซลล์จากการดู source/overlay ครบ 432 ช่อง และแยกสนามบิน/แนวรางที่ระบุไว้เป็น pending ตามคำตอบผู้ใช้ ไม่รวมในยอดหลัก ส่วนสนามกีฬา/โรงเรียน/วัด/รีสอร์ต/พื้นที่ร่วมที่ยังไม่ชัดเก็บ candidate พร้อมสถานะ unverified ตามคำตอบอีกข้อ
+ผล authoritative เปลี่ยนเป็น Output/latest/analysis หลังเพิ่มกรอบบริบทบ้านอีก 86 เซลล์จากการดู source/overlay ครบ 432 ช่อง และแยกสนามบิน/แนวรางที่ระบุไว้เป็น pending ตามคำตอบผู้ใช้ ไม่รวมในยอดหลัก ส่วนสนามกีฬา/โรงเรียน/วัด/รีสอร์ต/พื้นที่ร่วมที่ยังไม่ชัดเก็บ candidate พร้อมสถานะ unverified ตามคำตอบอีกข้อ
 
 | ภาพ | ผลหลักเข้าข่าย ตร.ม. | รอตรวจแยก ตร.ม. |
 | --- | ---: | ---: |
@@ -95,7 +95,7 @@
 | Theos01 | 2,161,651.25 | 0.00 |
 | Theos02 | 305,740.00 | 0.00 |
 
-ตรวจ source ทุก window รวม valid 108 ล้านพิกเซล ตรวจกลุ่มหลัก 921 กลุ่มครบ เก็บ audit/catalog/hashes และสำเนาโค้ดตาม hashes ครบ 14 modules ต่อภาพ Tests รันสำเร็จล่าสุด 46 ข้อผ่าน การตรวจนี้ไม่ใช่ human-ground-truth accuracy หรือการรับรองสิทธิ/การเข้าถึงสวน ดู [รายงานตรวจล่าสุด](FULL-AUDIT-th.md) และ [README](../README.md) สำหรับวิธีใช้/ข้อจำกัด/สถานะรันซ้ำ
+ตรวจ source ทุก window รวม valid 108 ล้านพิกเซล ตรวจกลุ่มหลัก 921 กลุ่มครบ เก็บ audit/catalog/hashes และสำเนาโค้ดตาม hashes ครบ 14 modules ต่อภาพ Tests รันสำเร็จล่าสุด 46 ข้อผ่าน การตรวจนี้ไม่ใช่ human-ground-truth accuracy หรือการรับรองสิทธิ/การเข้าถึงสวน ดู [รายงานตรวจล่าสุด](FULL-AUDIT-th.md) และ [README](../../README.md) สำหรับวิธีใช้/ข้อจำกัด/สถานะรันซ้ำ
 
 ## Scope ปัจจุบัน: backend-only
 

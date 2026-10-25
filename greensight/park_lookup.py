@@ -1,4 +1,4 @@
-﻿"""Find registry points on actual valid image pixels; never auto-verify access."""
+"""Find registry points on actual valid image pixels; never auto-verify access."""
 from copy import deepcopy
 from pathlib import Path
 import math
@@ -12,7 +12,7 @@ REFERENCE_PAGE = 'https://greener.bangkok.go.th/en/map-15-minute-garden/'
 DON_MUEANG = '\u0e40\u0e02\u0e15\u0e14\u0e2d\u0e19\u0e40\u0e21\u0e37\u0e2d\u0e07'
 
 
-def find_parks_in_image(tif_path, registry_path='data/parks15.geojson', *, district=None):
+def find_parks_in_image(tif_path, registry_path='data/registry/parks15.geojson', *, district=None):
     """Return WGS84 registry points inside valid pixels of ALL source bands.
 
     district='don-mueang' filters registry district metadata; it does not

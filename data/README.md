@@ -1,9 +1,20 @@
-# Park registry reference
+# Data guide
 
-Source: https://greener.bangkok.go.th/map-15-minute-garden/
-Reference requested by team: https://greener.bangkok.go.th/en/green-space/15-minute-garden/#map-15min-garden
-Snapshot: 2026-10-23, obtained from the public map's marker data in earlier local research.
+`scenes.json` is the shared configuration. Paths are relative to the repository root.
 
-parks15.geojson contains 528 valid-coordinate references derived from 530 source rows. Rows 59 and 93 had unusable coordinates and are excluded. Original marker JSON SHA256 is recorded in source.originalMarkersSHA256. IDs based on row numbers identify this snapshot only; do not assume stability across refreshed snapshots.
+| Folder | Contents | Verification status |
+| --- | --- | --- |
+| `registry/` | Cached Greener Bangkok points | Registry presence only |
+| `exclusions/` | Cached buildings/residential/private context | Incomplete; not cadastral boundaries |
+| `labels/assistant/` | Source-image interpretations | Human review pending |
+| `labels/human/` | Independent reference files | Currently empty |
+| `labels/policies/` | Housing exclusions and pending zones | Screening policy, not ownership proof |
+| `labels/review/` | Visual review-cell decisions | Assistant context review only |
 
-This is cached registry data, not a live API response, verified park boundary, confirmed entrance, field survey or opening-date record. Bangkok-only registry coverage does not establish absence of parks in scenes outside Bangkok. Position and public access require manual evidence. Retain source/date attribution when redistributing results. The code LICENSE does not assert ownership or licensing of third-party source data.
+Reference: https://greener.bangkok.go.th/en/map-15-minute-garden/
+
+`registry/parks15.geojson` is the 2026-10-23 snapshot: 528 valid-coordinate entries from 530 rows. Rows 59 and 93 had unusable coordinates. Source details and the original marker SHA256 are inside the file. Row IDs should not be assumed stable across refreshes.
+
+Do not replace human references with assistant labels or policy masks. Keep attribution and snapshot dates. No matching points does not prove that an image has no parks.
+
+Raw TIFFs belong in `Images/`. Generated files belong in `Output/`.

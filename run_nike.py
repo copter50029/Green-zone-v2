@@ -9,7 +9,7 @@ from greensight.scene import analyse_scene, read_json, write_json
 run_analysis = analyse_scene
 
 
-def run_all(config_path='data/scenes.json', out_dir='Output/nike-scenes'):
+def run_all(config_path='data/scenes.json', out_dir='Output/runs/analysis'):
     """Analyse all configured images; refuse existing output to preserve runs."""
     output = Path(out_dir)
     if output.exists():
@@ -34,15 +34,15 @@ if __name__ == '__main__':
     parser.add_argument('tif_path', nargs='?')
     parser.add_argument('out_dir', nargs='?')
     parser.add_argument('--all', action='store_true')
-    parser.add_argument('--output', default='Output/nike-scenes')
+    parser.add_argument('--output', default='Output/runs/analysis')
     parser.add_argument('--config', default='data/scenes.json')
     parser.add_argument('--scene-id')
     parser.add_argument('--min-area-m2',type=float,default=300)
     parser.add_argument('--red-band', type=int)
     parser.add_argument('--nir-band', type=int)
-    parser.add_argument('--registry', default='data/parks15.geojson')
-    parser.add_argument('--policy-exclusions', default='data/labels/area-exclusions.geojson')
-    parser.add_argument('--pending-areas',default='data/labels/pending-areas.geojson')
+    parser.add_argument('--registry', default='data/registry/parks15.geojson')
+    parser.add_argument('--policy-exclusions', default='data/labels/policies/area-exclusions.geojson')
+    parser.add_argument('--pending-areas',default='data/labels/policies/pending-areas.geojson')
     parser.add_argument('--exclude')
     parser.add_argument('--context')
     parser.add_argument('--imagery-date')

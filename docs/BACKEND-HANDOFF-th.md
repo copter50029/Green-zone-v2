@@ -1,4 +1,4 @@
-﻿# รับงาน Nike backend ต่อ
+# รับงาน Nike backend ต่อ
 
 เป้าหมาย: ตรวจพืชจาก TIFF → คัดบริบทบ้าน/จุดเล็ก → heatmap → เทียบสวนในทะเบียน → ส่ง GeoTIFF/GeoJSON/JSON ให้ backend ส่วนอื่นเรียกใช้ ไม่มี UI หรือโมดูลส่งออกเว็บใน scope นี้
 
