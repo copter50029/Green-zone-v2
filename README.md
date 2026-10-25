@@ -86,3 +86,7 @@ result = make_heatmap(mask, pixel_m=0.5, min_area_m2=300, radius_m=50)
 [คู่มือ input/output](docs/NIKE.md) · [วิธีประมวลผลและผลตรวจสามภาพ](docs/FULL-SCENE-METHODS-th.md) · [ประวัติงาน](docs/WORKLOG.md)
 
 ทำงานเฉพาะในเครื่องบน `nike/green-zone-functions` ตามที่ตกลง ยังไม่ push หรือเปิด PR
+
+## Labels จากต้นฉบับ
+
+เพิ่มชุดตีความจากภาพจริงทั้งสามภาพ พร้อม `validate_labels()` ตรวจกริด/NoData/การซ้อน/ระยะ train-test และกัน uncertain ออกจากจำนวนใช้งาน ดู [วิธีและข้อจำกัด](docs/LABELS-th.md) ชุดนี้เป็น assistant visual labels ที่รอคนตรวจ ไม่ใช่ ground truth สำหรับอ้าง accuracy
