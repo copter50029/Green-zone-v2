@@ -97,7 +97,7 @@ def grid_cut(tif_path, out_dir, tile_size=2000, save_tiles=True,
  
 if __name__ == "__main__":
     PROJECT_DIR = Path(__file__).resolve().parent
-    INPUT_TIF = PROJECT_DIR / "Images" / "Theos2.tif"
+    INPUT_TIF = PROJECT_DIR / "Images" / "Theos00.tif"
     OUT_DIR = PROJECT_DIR / "Output" / "grid_2000"
     TILE_SIZE = 2000
     SAVE_TILES = True        # False = only write grid_index.csv (no tile files)
