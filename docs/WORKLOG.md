@@ -40,3 +40,10 @@ Park desk checks: row-476 has registry photograph and Dec 2025 street-view conte
 No GitHub push, remote branch creation, PR or merge attempted. Existing local grid.py edit remains untouched and outside Nike commits.
 
 OSM context snapshots were formatted to one GeoJSON feature per line to keep code reviews manageable; parsed JSON content was checked unchanged. Exact pre-format input bytes used for the actual runs remain recoverable in local commit 1817988, matching per-scene context_sha256. Formatting changed file hashes, not geometry or results; no duplicate full-scene run was performed for formatting alone. Exact module bytes matching every code_sha256 (8/8 modules per scene) were archived under each result's code-used/ folder.
+
+### 2026-10-25 — Frontend contract and human review handoff
+- Added export_frontend(): verifies completed input artifacts, writes EPSG:3857 RGBA previews with explicit WGS84 bounds, retains native-grid measurements and pending park status, and hashes exports.
+- Exported all three scenes to Output/frontend-ready-20261025 plus zip; checked all hashes and unchanged area values. No external API or frontend framework added.
+- Added prepare_label_review()/apply_label_review(): 42 blank decisions; explicit reviewer/date/notes required; uncertain withheld, original annotations preserved, splits retained.
+- Added five tests; full suite 39 passed. Frontend integration contract tested locally; teammate frontend not available for end-to-end verification.
+- grid.py hash unchanged; no GitHub push or PR.

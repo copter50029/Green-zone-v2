@@ -90,3 +90,7 @@ result = make_heatmap(mask, pixel_m=0.5, min_area_m2=300, radius_m=50)
 ## Labels จากต้นฉบับ
 
 เพิ่มชุดตีความจากภาพจริงทั้งสามภาพ พร้อม `validate_labels()` ตรวจกริด/NoData/การซ้อน/ระยะ train-test และกัน uncertain ออกจากจำนวนใช้งาน ดู [วิธีและข้อจำกัด](docs/LABELS-th.md) ชุดนี้เป็น assistant visual labels ที่รอคนตรวจ ไม่ใช่ ground truth สำหรับอ้าง accuracy
+
+## ส่งให้เพื่อนทำ frontend / ตรวจ labels
+
+เรียก `export_frontend(run_dir, out_dir)` ได้ชุด PNG ที่จัดพิกัดสำหรับแผนที่เว็บ, GeoJSON และ manifest เดียว พร้อม `prepare_label_review()` / `apply_label_review()` สำหรับเก็บคำตอบตรวจโดยคนโดยไม่แก้ labels เดิม ดู [คู่มือส่งต่อพร้อมตัวอย่าง](docs/FRONTEND-HANDOFF-th.md)
