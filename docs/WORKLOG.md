@@ -67,3 +67,13 @@ OSM context snapshots were formatted to one GeoJSON feature per line to keep cod
 - Added source-grid WGS84 area-exclusions.geojson (assistant interpretation, unknown ownership) and reusable scene-specific policy exclusion in full-scene and cached processing.
 - Removed core/halo in the polygon, preserved parent alpha exclusions, original vegetation labels and previous runs. Theos00 372643 -> 363144.25m2; other two scene areas unchanged.
 - Rebuilt three-scene frontend handoff; 44 software tests passed. Not a claim that automatic private-yard detection is complete.
+
+### 2026-10-25 — Full three-scene audit and authoritative handoff
+- Re-ran all three original TIFFs twice as policies evolved; audited raw mask against every source window, all native counts, every retained component, NoData, exclusion core/alpha and hashes.
+- Reviewed 432 paired source/overlay cells (12 contact sheets); added 86 conservative housing-cell exclusions with assistant provenance and explicit non-cadastral limits.
+- User kept institutional/shared/resort/sports candidates as unverified and requested airport/rail green in a separate pending layer excluded from the main total.
+- Added pending masks/RGBA, pixel-conservation checks, source-audit/catalog helper and optional frontend pending contract. Final main areas: 160152.75 / 2161651.25 / 305740.00 m2; pending: 180615.50 / 0 / 0 m2; 921 main components.
+- Last successful unittest run: 46 passed, including pending/native/audit/frontend export tests. A later repeat was blocked before test execution by Windows denying the Python runtime even after read permission was granted; preserved the blocked log and separate test-status JSON.
+- Audits passed for 1668988808 source positions including NoData, 108000000 valid pixels. Archived exact bytes for all 14 recorded code modules per scene and frozen input/config/policy snapshots.
+- Updated README around the authoritative results, function usage, teammate handoff, reproducibility and remaining semantic limitations; no claims of real accuracy, public ownership or complete private-yard rejection.
+- PowerShell verified every export hash, recorded code hash, all 921 catalog entries, three full audits and 51 report assets. No remote publication; grid.py user edit preserved.

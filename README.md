@@ -1,105 +1,130 @@
 # Green-zone-v2 — งาน Nike
 
-Backend Python สำหรับ **detect green zone → heatmap → park verify** แยกจาก `grid.py` ของทีม โค้ดฐานของเพื่อนยังอยู่เดิม
+Backend Python สำหรับ **ตรวจพื้นที่สีเขียว → คัดบริบทบ้าน/จุดเล็ก → heatmap → เทียบทะเบียนสวน** ใช้ TIFF ของทีมทั้ง 3 ภาพ โค้ดงาน Nike แยกใน `greensight/` และคง `grid.py` ของเพื่อนไว้
 
-## ใช้งานเร็ว
+## ผลล่าสุดที่ตรวจแล้ว — 25 ตุลาคม 2569
+
+| ภาพ | Candidate ผลหลัก (ตร.ม.) | แยกชั้นรอตรวจ (ตร.ม.) | กลุ่มผลหลัก |
+| --- | ---: | ---: | ---: |
+| Theos00 | 160,152.75 | 180,615.50 | 104 |
+| Theos01 | 2,161,651.25 | 0.00 | 622 |
+| Theos02 | 305,740.00 | 0.00 | 195 |
+
+**ผลหลักยังเป็นพื้นที่เข้าข่าย ไม่ใช่สวนสาธารณะที่ยืนยันแล้ว** พื้นที่รอตรวจไม่รวมยอดหลัก ชั้นรอตรวจว่างหมายถึงยังไม่ได้ระบุกรอบประเภทนั้นในภาพ ไม่ยืนยันว่าไม่มีพื้นที่จำกัดสิทธิ ภาพต่างตำแหน่ง/วันที่จึงไม่รวมเป็นยอดสวนทั้งเขต
+
+ผลในเครื่องที่ควรใช้ต่อ:
+
+- [หน้ารวมภาพ/ชั้นรอตรวจ/หลักฐาน](Output/reviewed-final-report-20261025/index.html)
+- [ภาพรวมทั้งสามภาพ](Output/reviewed-final-report-20261025/all-scenes.png)
+- [ผลตรวจครบสามภาพ](Output/nike-reviewed-final-20261025/audit-all.json)
+- [Manifest ส่งต่อ frontend](Output/frontend-reviewed-20261025/manifest.json)
+- ชุดส่งต่อ `Output/frontend-reviewed-20261025.zip`
+
+`Output/` และ `Images/` อยู่เฉพาะเครื่องและถูก ignore ใน Git เพื่อนต้องมี TIFF/ผลส่งต่อของตัวเอง ลิงก์ผลข้างต้นจึงเปิดไม่ได้บน GitHub ที่ไม่มีไฟล์เหล่านี้ รายละเอียดวิธีและข้อจำกัดอ่านได้ใน [FULL-AUDIT-th.md](docs/FULL-AUDIT-th.md)
+
+## เริ่มใช้งาน
+
+Python 3.10+ จาก root repository:
 
 ```powershell
-# จาก root repository; ต้องมี Python 3.10+
+# ครั้งแรก หากยังไม่มี .venv
+python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-nike.txt
-.\.venv\Scripts\python.exe run_nike.py --all --output Output/nike-new-run
+
+# ประมวลผลครบสามภาพ เลือกชื่อ output ที่ยังไม่มี
+.\.venv\Scripts\python.exe run_nike.py --all --output Output/my-reviewed-run
 ```
 
-ตั้ง 3 ภาพและข้อมูลประกอบใน `data/scenes.json` เลือก output ใหม่ทุกครั้ง ไม่เขียนทับผลเดิม ไม่ต้องติดตั้ง frontend
+วาง `Theos00.tif`, `Theos01.tif`, `Theos02.tif` ใน `Images/` แล้วตรวจ paths/bands/context/policy ใน `data/scenes.json` ไม่เขียนทับผลเก่า ไม่ต้องติดตั้ง frontend หรือมี API key เพื่อรันขั้นตอนนี้
 
-เปิด `Output/nike-new-run/index.html` ดูภาพเปรียบเทียบ หรือเปิด GeoTIFF/GeoJSON ใน QGIS
-
-## ฟังก์ชันหลัก
-
-| ฟังก์ชัน | ใช้ทำอะไร |
-| --- | --- |
-| `detect_green(bands, red_band=3, nir_band=4, ...)` | ตรวจ candidate พืชทีละ array/window |
-| `make_heatmap(mask, pixel_m, ...)` | เก็บกลุ่ม ≥300 ตร.ม. และสร้างสีเขียวพร้อม halo จาง |
-| `analyse_scene(tif_path, out_dir, ...)` | ทำทั้งภาพด้วย window เก็บขอบครบ รวมก่อนกรองกลุ่ม |
-| `prepare_park_review(registry, mask, transform, crs, ...)` | เทียบหมุดทะเบียนกับภาพ สร้างงานรอตรวจ |
-| `record_park_review(task, ...)` | บันทึกผู้ตรวจและหลักฐานตำแหน่ง/การเข้าถึง |
-| `evaluate_mask(mask, references, transform, crs, target=...)` | ประเมินเฉพาะ labels ที่ตรวจแล้ว ถ้าไม่มีคืนสถานะรอข้อมูล |
+เรียกเป็นฟังก์ชันได้สั้นๆ:
 
 ```python
-from greensight import analyse_scene
+from run_nike import run_all
+from greensight import export_frontend
 
-summary = analyse_scene(
-    "Images/Theos00.tif", "Output/my-scene-run",
-    scene_id="Theos00", red_band=3, nir_band=4,
-    registry_path="data/parks15.geojson",
-    context_path="data/exclusions/Theos00.geojson",
-    imagery_date="2024-10-12",
-)
+results = run_all(out_dir='Output/my-reviewed-run')
+manifest = export_frontend('Output/my-reviewed-run', 'Output/my-web-package')
 ```
 
-หรือเรียก `from run_nike import run_all; run_all(out_dir="Output/my-three-scenes")`
+## ขั้นตอนคัดพื้นที่
 
-## ใช้ array สั้น ๆ กับงานของเพื่อน
+1. อ่าน TIFF ทีละ 512×512 รวมขอบ window ให้ครบ ตรวจ NoData ทุก band และรวม mask ทั้งภาพก่อนกรองกลุ่ม
+2. ใช้ raw-band ratio ทดลอง โดยสมมติ RED=3/NIR=4; ไม่อ้างว่าเป็น reflectance NDVI ที่ยืนยัน calibration แล้ว
+3. คัดอาคารพร้อม buffer 8 เมตร บ้านที่มีข้อมูล 20 เมตร เขต residential 10 เมตร และ private-access polygons จาก OSM snapshot
+4. ใช้กรอบภาพที่ตรวจบริบทบ้านเพิ่ม: 86 เซลล์ตรวจ 250×250 เมตร พร้อมกรอบกรณีที่ผู้ใช้ชี้ใต้สนามบิน ขอบเซลล์เป็นการคัดแบบเข้ม ไม่ใช่ขอบกรรมสิทธิ์ อาจตัดพืชส่วนรวมใกล้บ้านด้วย
+5. ตัดเส้นบางด้วย disk opening รัศมี 3 เมตร แล้วกรองกลุ่ม 4 ทิศที่พื้นที่อย่างน้อย 300 ตร.ม. ไม่เติมพืชเพิ่ม
+6. ตามนโยบายผู้ใช้ แยกบริเวณสนามบิน/แนวรางที่ระบุไว้เป็นชั้นรอตรวจ และกรองขนาดกลุ่มผลหลักซ้ำหลังแบ่งพื้นที่
+7. ตัดทั้งสีเขียวและ halo ออกจากบริเวณบ้าน/กรอบที่กันไว้ สีแดงจางคือระยะเส้นตรงรอบพืช ไม่ใช่ความร้อนหรือระยะเดิน
+8. เก็บสนามกีฬา/พื้นที่ร่วมของโรงเรียน วัด รีสอร์ต หรือโครงการจัดสรรเป็น candidate เมื่อไม่ถูกคัดด้วยหลักฐานบริบทที่มี พร้อมสถานะยังไม่ยืนยันการเข้าใช้ตามคำตอบผู้ใช้
 
-```python
-from greensight import detect_green, make_heatmap
+## ฟังก์ชันที่เพื่อนเรียกใช้
 
-mask = detect_green(bands, red_band=3, nir_band=4,
-                    nodata=65535, valid_mask=valid, exclude_mask=excluded)
-result = make_heatmap(mask, pixel_m=0.5, min_area_m2=300, radius_m=50)
-# result["mask"], result["rgba"], result["stats"]
-```
-
-`bands` = numpy `(bands,height,width)`; `valid` / `excluded` เป็น bool บนกริดเดียวกัน ถ้าไม่มี exclusion ไม่ต้องใส่พารามิเตอร์นี้ mask codes: `0=other, 1=candidate, 2=uncertain, 255=NoData`
-
-เมื่อทำเองทีละ tile ต้องรวมกลับ scene ก่อน `make_heatmap()` ส่วน `analyse_scene()` รวมให้แล้ว ไม่พึ่ง tile ที่ `grid.py` อาจข้ามขอบไว้
-
-## ผลต่อภาพ
-
-| ไฟล์ | ความหมาย |
+| ฟังก์ชัน | งาน / input-output |
 | --- | --- |
-| `raw-mask.tif` | ผล ratio บนกริดต้นฉบับเต็ม รวม NoData |
-| `candidate-mask.tif` | หลัง exclusions และกรองกลุ่ม บน native grid ตัดเฉพาะกรอบ NoData ภายนอก |
-| `heatmap.tif` | RGBA มีพิกัด พร้อม alpha โปร่งใส |
-| `source.png`, `heatmap.png` | ภาพย่อสำหรับรายงาน ไม่ใช่ข้อมูลวิเคราะห์ |
-| `park-review.geojson` | หมุดทะเบียนที่อยู่บนข้อมูลภาพจริง พร้อม metrics และสถานะรอตรวจ |
-| `summary.json`, `status.json` | พื้นที่ counts hashes window/grid และสถานะรัน |
+| `detect_green(bands, red_band=3, nir_band=4, ...)` | numpy `(bands,height,width)` → class mask |
+| `make_heatmap(mask, pixel_m, clean_radius_m=3, ...)` | mask → mask กรองแล้ว, RGBA และ stats |
+| `analyse_scene(tif_path, out_dir, ...)` | TIFF ทั้งภาพ → GeoTIFF/PNG/GeoJSON/summary; ใช้ policy ผ่าน kwargs |
+| `clean_saved_results(run_dir, out_dir, ...)` | คัดผลที่บันทึกแล้วพร้อมตรวจ parent hashes; ไม่อ่าน radiometry ใหม่ |
+| `export_frontend(run_dir, out_dir)` | ผลครบ scene → PNG EPSG:3857, GeoJSON และ manifest |
+| `prepare_park_review(...)` / `record_park_review(...)` | เตรียมงานตรวจสวน / บันทึกหลักฐานการตรวจ |
+| `validate_labels(...)` | ตรวจกริด ที่มา การซ้อนและระยะห่างของ assistant vegetation labels |
+| `prepare_label_review(...)` / `apply_label_review(...)` | คิวคำตอบว่าง → คำตอบจากผู้ตรวจ แยก train/validation/test |
+| `evaluate_mask(...)` | ประเมินได้เมื่อมี human-reviewed test references ที่ตรง target |
+| `greensight.audit.audit_scene(...)` | ตรวจ source ทุก window, hashes, exclusions, พื้นที่และทุก component |
 
-## ข้อมูลและข้อจำกัดที่ต้องรู้
+Library defaults บางตัวคงค่าเดิมเพื่อรองรับโค้ดเพื่อน การใช้ `run_all()` จะอ่านเกณฑ์ล่าสุดจาก config ครบ หากเรียก `analyse_scene()` เองต้องส่ง buffers และ policy paths ตาม config
 
-- ใช้ภาพ GISTDA ทั้ง 3 TIFF เป็นหลัก ไม่รวมยอดสามภาพเป็นพื้นที่สวนทั้งเขต
-- อ่าน 512×512 พิกเซล เก็บ partial edges และนับพิกเซลครั้งเดียว กรองกลุ่ม 4 ทิศทั้งภาพแล้วจึงสร้างระยะ
-- ตัด polygon อาคารพร้อม buffer 2 เมตร พื้นที่ residential และ access=private/no/customers/permit จาก **OSM snapshot ในเครื่อง** ซึ่งอาจไม่ครบ/คนละปีกับภาพ การตัด residential อาจตัดพืชสาธารณะใน polygon นั้นด้วย จึงยังไม่รับรองว่ากำจัดหลังคา/ต้นไม้ในบ้านได้ทั้งหมด
-- ข้อมูล OSM ครอบคลุมกรอบศึกษาเดิม พื้นที่ภาพที่เลยกรอบนั้นรายงานใน `valid_area_outside_context_coverage_m2` และยังไม่มีข้อมูล exclusions ครบ ห้ามถือว่าเป็นพื้นที่สาธารณะที่ยืนยันแล้ว
-- [เอกสาร ESRI](https://doc.esri.com/en/arcgis-pro/latest/help/data/imagery/satellite-sensor-raster-types.html) สนับสนุนลำดับ THEOS-2 มาตรฐาน Blue/Green/Red/NIR แต่ไฟล์ที่มีไม่ยืนยัน identity/calibration เฉพาะไฟล์ จึงยังใช้ **experimental raw-band ratio**
-- ทะเบียน [Greener Bangkok](https://greener.bangkok.go.th/en/green-space/15-minute-garden/#map-15min-garden) เป็น snapshot 23 ต.ค. 2026 จำนวน 528 พิกัดใช้ได้จาก 530 รายการ ไม่ใช่ขอบสวน ทางเข้าหรือสถานะเปิดปัจจุบัน
-- ไม่มี labels ตรวจแล้วจึง `real_accuracy=null` และไม่สร้างโมเดล/ตัวเลขความแม่นยำปลอม
+Mask codes: `0=other`, `1=candidate`, `2=uncertain`, `255=NoData` ห้ามเรียก `make_heatmap()` แยกแต่ละ tile แล้วนำพื้นที่มาบวก ต้องรวมกลับ scene ก่อน
 
-## โฟลเดอร์และการตรวจงาน
+## ไฟล์ผลและการต่อ frontend
 
-`greensight/` ฟังก์ชัน · `data/` ค่าตั้งและ snapshots · `tests/` ทดสอบ · `docs/` คู่มือ/วิธีทดลอง · `Images/` และ `Output/` ข้อมูลในเครื่อง ไม่ commit
+| ไฟล์ต่อภาพ | ความหมาย |
+| --- | --- |
+| `raw-mask.tif` | ผล ratio บนกริด TIFF เต็ม |
+| `candidate-mask.tif` | ผลหลักหลังคัดพื้นที่และแยก pending บน native grid |
+| `heatmap.tif` / `heatmap.png` | RGBA มีพิกัด / ภาพย่อผสม RGB สำหรับดู |
+| `pending-mask.tif` / `pending.tif` | candidate ที่แยกรอตรวจ / RGBA สีเหลือง ไม่รวมผลหลัก |
+| `park-review.geojson` | หมุดทะเบียนในข้อมูลภาพ ไม่ใช่ขอบสวนหรือทางเข้า |
+| `summary.json`, `status.json` | พื้นที่ ค่าตั้ง provenance hashes และสถานะรัน |
+| `audit.json`, `patch-review-catalog.json` | ผลตรวจและรายการทุกกลุ่มที่เหลือ ซึ่งยังต้องตรวจความหมายจริง |
+| `code-used/`, `inputs/` ในชุดตรวจล่าสุด | สำเนาโค้ดตาม hashes และข้อมูลตั้งต้นสำหรับตรวจย้อนกลับ |
+
+เพื่อนนำไฟล์ในชุด web package ไปวางใน static assets เช่น `public/nike/` อ่าน `manifest.json` ผ่าน HTTP ของ frontend แต่ละ scene มี `source`, `heatmap`, `parks` และ optional `pending` พร้อม `bounds_wgs84=[west,south,east,north]` ภาพ PNG แปลง EPSG:3857 แล้ว ใช้ bounds เดียวกันทุกชั้น
+
+อ่านพื้นที่จาก `candidate_area_m2` ไม่วัดจาก PNG และไม่บวก `pending_area_m2` เมื่อ `pending_in_main_total=false` ตั้งสวิตช์แยกชื่อ “รอตรวจ — ไม่รวมยอดหลัก” ดูตัวอย่างเชื่อมใน [FRONTEND-HANDOFF-th.md](docs/FRONTEND-HANDOFF-th.md) ภาพย่อเหมาะกับภาพรวม งานดูละเอียดใช้ native GeoTIFF/QGIS หรือระบบ tiles ของทีม
+
+## หลักฐานการตรวจและสิ่งที่ยังไม่รับรอง
+
+- การรันสำเร็จล่าสุด: Tests 46 ข้อผ่าน รวม native grid, window edges, noise, house exclusions, halo, pending, export และ park-review guards
+- ตรวจ source ทุก window รวม 1,668,988,808 พิกเซล (รวม NoData); valid จริง 108,000,000 พิกเซล ตรวจกลุ่มผลหลักครบ 921 กลุ่ม ทุกกลุ่ม ≥300 ตร.ม.
+- ตรวจภาพย่อยครบ 432 ช่องที่ระดับ contact sheet; เก็บการตัดสินใจใน `data/labels/visual-cell-review.json` เป็น assistant interpretation ไม่ใช่ผู้ตรวจภาคสนาม
+- Vegetation labels 42 กรอบ: ผู้ช่วยตีความชัด 34, uncertain 8; human-reviewed ยัง 0 เก็บแยกจาก policy exclusions และไม่ใช้เป็น accuracy จริง
+- ยังไม่มีโมเดลที่ฝึกกับ human labels จริง ไม่รับรองว่าตัดหลังคา/ต้นไม้ในบ้านได้ทั้งหมด ข้อมูลบ้านอาจไม่ครบ และพื้นที่ที่เหลือไม่ได้ยืนยันสิทธิ/การเข้าถึงสวน
+- Band order มีข้อมูลมาตรฐานประกอบ แต่ calibration/identity เฉพาะ TIFF และวันที่จาก metadata ยังไม่ยืนยันครบ
+- Greener Bangkok เป็น snapshot ในเครื่อง: 528 พิกัดใช้ได้จาก 530 รายการ ไม่ใช่สถานะปัจจุบัน พบ 2 หมุดใน Theos00; ภาพอื่นไม่มีหมุดจาก snapshot นี้ ไม่แปลว่าไม่มีสวน โดยเฉพาะ Theos01 มีพิกัดอยู่นอกกรุงเทพฯ
+- ทดสอบ contract ไฟล์ส่งต่อแล้ว แต่ยังไม่ได้ทดสอบกับ frontend ของเพื่อนจริง ไม่มี benchmark latency ที่รับรอง
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-[คู่มือ input/output](docs/NIKE.md) · [วิธีประมวลผลและผลตรวจสามภาพ](docs/FULL-SCENE-METHODS-th.md) · [ประวัติงาน](docs/WORKLOG.md)
+รันซ้ำท้ายงานติด Windows access denied ก่อนเริ่ม tests แม้ขอสิทธิ์อ่าน runtime แล้ว โค้ดไม่ได้เปลี่ยนหลังชุดทดสอบที่ผ่าน 46 ข้อ ผล audit/ไฟล์ส่งต่อถูกตรวจต่อด้วย PowerShell ดู [สถานะการทดสอบ](Output/reviewed-final-tests-status-20261025.json) เพื่อแยกผลที่ผ่านจริงออกจากความพยายามรันซ้ำที่ถูกบล็อก
 
-ทำงานเฉพาะในเครื่องบน `nike/green-zone-functions` ตามที่ตกลง ยังไม่ push หรือเปิด PR
+## โครงสร้าง
 
-## Labels จากต้นฉบับ
+```text
+grid.py             โค้ดฐานของทีม
+greensight/         ฟังก์ชัน backend ของ Nike
+data/scenes.json    ค่าตั้งสามภาพและ policy ที่ใช้ร่วมกัน
+data/exclusions/    OSM snapshots พร้อมที่มา
+data/labels/        labels, กรอบคัดบ้าน, กรอบ pending และบันทึกตรวจ
+Images/             TIFF ในเครื่อง (ไม่ commit)
+Output/             ผลแต่ละรันและชุด frontend (ไม่ commit)
+tests/              ตรวจพฤติกรรมซอฟต์แวร์
+docs/               คู่มือ วิธีทดลอง ข้อจำกัด และประวัติงาน
+```
 
-เพิ่มชุดตีความจากภาพจริงทั้งสามภาพ พร้อม `validate_labels()` ตรวจกริด/NoData/การซ้อน/ระยะ train-test และกัน uncertain ออกจากจำนวนใช้งาน ดู [วิธีและข้อจำกัด](docs/LABELS-th.md) ชุดนี้เป็น assistant visual labels ที่รอคนตรวจ ไม่ใช่ ground truth สำหรับอ้าง accuracy
+[รายงานตรวจล่าสุด](docs/FULL-AUDIT-th.md) · [วิธีคัดบริบทบ้าน](docs/PUBLIC-GREEN-SCREENING-th.md) · [วิธี labels](docs/LABELS-th.md) · [ประวัติงาน](docs/WORKLOG.md)
 
-## ส่งให้เพื่อนทำ frontend / ตรวจ labels
-
-เรียก `export_frontend(run_dir, out_dir)` ได้ชุด PNG ที่จัดพิกัดสำหรับแผนที่เว็บ, GeoJSON และ manifest เดียว พร้อม `prepare_label_review()` / `apply_label_review()` สำหรับเก็บคำตอบตรวจโดยคนโดยไม่แก้ labels เดิม ดู [คู่มือส่งต่อพร้อมตัวอย่าง](docs/FRONTEND-HANDOFF-th.md)
-
-
-## ตัด noise เพิ่มเติม
-
-ตั้ง `clean_radius_m=2` ใน data/scenes.json แล้ว ตัดเส้นเชื่อมบางและจุดย่อยก่อนกรองกลุ่ม ≥300 ตร.ม. ซ้ำ แล้วสร้าง halo ใหม่ ดู [วิธีและข้อแลกเปลี่ยน](docs/NOISE-CLEANUP-th.md) ผลล่าสุดอยู่ `Output/nike-clean-20261025` และชุดส่งต่อ `Output/frontend-clean-20261025`
-
-## ผลล่าสุด: คัดบ้านออกแบบเข้ม
-
-ไม่นับต้นไม้/สวนในบริบทบ้านตามนโยบายผู้ใช้: กันอาคาร 8 เมตร บ้าน 20 เมตร และเขต residential 10 เมตร ก่อนเปิดรูปร่าง 3 เมตร/กรองกลุ่ม 300 ตร.ม. ซ้ำ และตัด halo ออกจาก exclusion mask ด้วย ดู [หลักเกณฑ์และข้อจำกัด](docs/PUBLIC-GREEN-SCREENING-th.md) ผลยังเป็น candidate ที่รอตรวจสิทธิ ไม่ใช่สวนสาธารณะที่ยืนยันแล้ว
+ทำงานใน branch `nike/green-zone-functions` และเก็บ commit ในเครื่อง ยังไม่ push หรือเปิด PR ตามที่ผู้ใช้กำหนด

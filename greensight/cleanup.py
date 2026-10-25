@@ -9,11 +9,12 @@ from .heatmap import make_heatmap
 from .park_verify import prepare_park_review
 from .scene import read_json,write_json,digest
 from .report import write_report
+from .pending import separate_pending,write_pending
 from .exclusions import exclude_context, exclude_policy_areas
 
 
 def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='data/parks15.geojson',
-                        contexts=None, building_buffer_m=2, house_buffer_m=0, residential_buffer_m=0, policy_exclusions=None):
+                        contexts=None, building_buffer_m=2, house_buffer_m=0, residential_buffer_m=0, policy_exclusions=None, pending_areas=None):
     """Remove narrow/small candidate fragments, recheck >=300m2, rebuild halos.
 
     Works on globally merged masks. Never adds candidate pixels; previous
@@ -22,6 +23,7 @@ def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='da
     source,output=Path(run_dir),Path(out_dir)
     if output.exists(): raise FileExistsError('Choose a new output directory')
     results=read_json(source/'summary-all.json'); registry=read_json(registry_path)
+    pending_policy=read_json(pending_areas) if pending_areas else None
     policy=read_json(policy_exclusions) if policy_exclusions else None
     if policy:
         exclude_policy_areas(np.zeros((1,1),dtype='uint8'),policy,rasterio.Affine(1,0,0,0,-1,1),'EPSG:32647',scene_id='preflight')
@@ -56,6 +58,10 @@ def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='da
                 filtered,policy_mask=exclude_policy_areas(filtered,policy,src.transform,src.crs,scene_id=scene)
                 blocked=policy_mask if blocked is None else blocked|policy_mask
             cleaned=make_heatmap(filtered,old['pixel_m'],old['minimum_patch_m2'],old['halo_radius_m'],clean_radius_m=clean_radius_m)
+            pending_report=None
+            if pending_policy:
+                cleaned,pending_mask,pending_rgba,pending_report=separate_pending(cleaned,pending_policy,src.transform,src.crs,scene_id=scene,pixel_m=old['pixel_m'],min_area_m2=old['minimum_patch_m2'],radius_m=old['halo_radius_m'])
+                write_pending(folder,profile,pending_mask,pending_rgba)
             with rasterio.open(source/scene/'heatmap.tif') as parent_heat:
                 cleaned['rgba'][parent_heat.read(4)==0]=0
             if blocked is not None:
@@ -84,12 +90,17 @@ def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='da
             s['halo_clipped_to_exclusion_mask']=True
             s['eligibility_status']='conservative_screening_not_verified_public_land'
             s['limitations'].append('House/residential buffers deliberately exclude ambiguous neighbouring vegetation; incomplete mapping can still miss private yards.')
+        if pending_report is not None:
+            s['pending_review']=pending_report
+            s['provenance']['pending_areas_sha256']=digest(pending_areas)
         if policy:
             s['policy_exclusions_sha256']=digest(policy_exclusions)
             s['policy_exclusions_basis']='assistant visual area interpretation; conservative exclusion, ownership unknown'
         s['provenance']['code_sha256']={p.name:digest(p) for p in Path(__file__).parent.glob('*.py')}
         s['limitations'].append('Morphology removes narrow vegetation and canopy fringes too; it does not prove semantic accuracy.')
         s['artifact_sha256']={name:digest(folder/name) for name in ('candidate-mask.tif','heatmap.tif','park-review.geojson','source.png','heatmap.png')}
+        if pending_report is not None:
+            s['artifact_sha256'].update({name:digest(folder/name) for name in ('pending-mask.tif','pending.tif')})
         write_json(folder/'summary.json',s)
         write_json(folder/'status.json',{'status':'complete','scene_id':scene})
         updated.append(s)

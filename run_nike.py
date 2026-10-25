@@ -25,7 +25,7 @@ def run_all(config_path='data/scenes.json', out_dir='Output/nike-scenes'):
             registry_path=settings.get('registry'),
             clean_radius_m=scene.get('clean_radius_m',settings.get('clean_radius_m',0)),
             building_buffer_m=settings.get('building_buffer_m',2),house_buffer_m=settings.get('house_buffer_m',0),
-            residential_buffer_m=settings.get('residential_buffer_m',0), policy_exclusions=settings.get('policy_exclusions'), progress=lambda message: print(message,flush=True)))
+            residential_buffer_m=settings.get('residential_buffer_m',0), policy_exclusions=settings.get('policy_exclusions'),pending_areas=settings.get('pending_areas'), progress=lambda message: print(message,flush=True)))
     write_report(output, results)
     return results
 
@@ -42,6 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('--nir-band', type=int)
     parser.add_argument('--registry', default='data/parks15.geojson')
     parser.add_argument('--policy-exclusions', default='data/labels/area-exclusions.geojson')
+    parser.add_argument('--pending-areas',default='data/labels/pending-areas.geojson')
     parser.add_argument('--exclude')
     parser.add_argument('--context')
     parser.add_argument('--imagery-date')
@@ -60,6 +61,6 @@ if __name__ == '__main__':
                                red_band=args.red_band,nir_band=args.nir_band,
                                registry_path=args.registry,exclude_path=args.exclude,
                                context_path=args.context,imagery_date=args.imagery_date,clean_radius_m=args.clean_radius_m,
-                               building_buffer_m=args.building_buffer_m,house_buffer_m=args.house_buffer_m,residential_buffer_m=args.residential_buffer_m,policy_exclusions=args.policy_exclusions,
+                               building_buffer_m=args.building_buffer_m,house_buffer_m=args.house_buffer_m,residential_buffer_m=args.residential_buffer_m,policy_exclusions=args.policy_exclusions,pending_areas=args.pending_areas,
                                progress=lambda message: print(message,flush=True))
         print(json.dumps(result,indent=2))

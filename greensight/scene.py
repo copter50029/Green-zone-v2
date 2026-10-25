@@ -10,6 +10,7 @@ from rasterio.windows import Window
 
 from .detect import detect_green
 from .heatmap import make_heatmap
+from .pending import separate_pending,write_pending
 from .park_verify import prepare_park_review
 from .exclusions import exclude_context, exclude_policy_areas
 
@@ -42,7 +43,7 @@ def write_json(path, value):
 def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
                   registry_path=None, context_path=None, exclude_path=None,
                   imagery_date=None, window_size=512, min_area_m2=300,
-                  radius_m=50, clean_radius_m=0, building_buffer_m=2, house_buffer_m=0, residential_buffer_m=0, policy_exclusions=None, progress=None):
+                  radius_m=50, clean_radius_m=0, building_buffer_m=2, house_buffer_m=0, residential_buffer_m=0, policy_exclusions=None, pending_areas=None, progress=None):
     """Process a TIFF once in windows; merge before patch filtering/heatmap.
 
     Outputs preserve the source CRS and native pixel grid, cropped only to
@@ -55,6 +56,7 @@ def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
         raise FileExistsError('Choose a new output directory; existing results are preserved')
     registry = read_json(registry_path) if registry_path else {'type': 'FeatureCollection', 'features': []}
     context = read_json(context_path) if context_path else None
+    pending_policy=read_json(pending_areas) if pending_areas else None
     policy=read_json(policy_exclusions) if policy_exclusions else None
     # Validate user options before reading a large input or creating output.
     detect_green(np.ones((4, 1, 1)), red_band=red_band, nir_band=nir_band)
@@ -129,6 +131,9 @@ def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
         if progress:
             progress(f'{scene_id}: global patch filter and distance over {mask.shape}')
         result = make_heatmap(mask, src.res[0], min_area_m2, radius_m, clean_radius_m=clean_radius_m)
+        pending_report=None
+        if pending_policy:
+            result,pending_mask,pending_rgba,pending_report=separate_pending(result,pending_policy,transform,src.crs,scene_id=scene_id,pixel_m=src.res[0],min_area_m2=min_area_m2,radius_m=radius_m)
         if blocked is not None:
             result['rgba'][blocked]=0
         tasks = prepare_park_review(registry, result['mask'], transform, src.crs,
@@ -136,6 +141,8 @@ def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
         profile.update(width=int(crop.width), height=int(crop.height), transform=transform)
         with rasterio.open(destination / 'candidate-mask.tif', 'w', **profile) as dst:
             dst.write(result['mask'], 1)
+        if pending_report is not None:
+            write_pending(destination,profile,pending_mask,pending_rgba)
         profile.update(count=4, nodata=None)
         with rasterio.open(destination / 'heatmap.tif', 'w', **profile) as dst:
             dst.write(np.moveaxis(result['rgba'], -1, 0))
@@ -186,8 +193,13 @@ def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
         }
     if (tif_path.stat().st_size,tif_path.stat().st_mtime_ns) != stamp:
         raise RuntimeError('Source changed during analysis; output is not publishable')
+    if pending_report is not None:
+        summary['pending_review']=pending_report
+        summary['provenance']['pending_areas_sha256']=digest(pending_areas)
     write_json(destination / 'park-review.geojson',tasks)
     summary['artifact_sha256'] = {name:digest(destination/name) for name in ('raw-mask.tif','candidate-mask.tif','heatmap.tif','park-review.geojson','source.png','heatmap.png')}
+    if pending_report is not None:
+        summary['artifact_sha256'].update({name:digest(destination/name) for name in ('pending-mask.tif','pending.tif')})
     write_json(destination / 'summary.json',summary)
     write_json(destination / 'status.json',{'status':'complete','scene_id':scene_id})
     return summary

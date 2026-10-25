@@ -84,3 +84,19 @@ for split, collection in reviewed.items():
 4. จึงฝึกและรายงาน precision/recall/IoU ตามหลักฐาน ไม่อ้างผลชุดนี้ว่ากำจัดหลังคาหรือพื้นที่ส่วนตัวได้ครบ
 
 ไม่มีการส่ง GitHub หรือเรียกบริการภายนอกในการส่งออก/จัดชุดตรวจครั้งนี้
+
+## ชุดส่งต่อรอบตรวจครบสามภาพ
+
+ชุดล่าสุด: `Output/frontend-reviewed-20261025.zip` ยึด README และ docs/FULL-AUDIT-th.md สำหรับตัวเลขปัจจุบัน ส่วนตัวอย่าง path รุ่นก่อนด้านบนเป็นประวัติ
+
+แต่ละ scene ใน manifest เพิ่ม optional fields:
+
+```json
+{
+  "pending": "Theos00/pending.png",
+  "pending_area_m2": 180615.5,
+  "pending_in_main_total": false
+}
+```
+
+วาง pending ด้วย bounds เดียวกับ source/heatmap เป็นชั้นสีเหลืองที่เปิดปิดแยกได้ และไม่บวกใน candidate_area_m2 ภาพที่ pending_area_m2=0 หมายถึงไม่มี candidate ในกรอบ pending ที่ระบุ ไม่ได้พิสูจน์ว่าไม่มีพื้นที่จำกัดสิทธิในภาพทั้งหมด หมุด 15 ยัง needs_review/verified=false
