@@ -17,7 +17,6 @@
 4. ตัดบริเวณรอบ footprint ที่ระบุ house/residential/apartments/terrace/detached/semidetached_house/bungalow/dormitory ระยะ 20 เมตร รวม access=private/no/customers/permit จาก polygon
 5. ตัดเส้นบาง/ส่วนยื่นด้วย disk opening รัศมี 3 เมตร แล้วกรองกลุ่ม 4 ทิศซ้ำ ขั้นต่ำ 300 ตร.ม. ไม่เติมพืชเพิ่ม
 6. สร้าง halo ใหม่และตัด alpha เป็นศูนย์บน exclusion mask ด้วย จึงไม่ปล่อยสีจางแผ่กลับทับบริเวณบ้านที่กันไว้
-7. สร้าง park metrics ใหม่ เก็บ summary, parent hashes, จำนวนที่คัดออก และส่งออก frontend ใหม่
 
 ระยะ 8/10/20 เมตร และรัศมี 3 เมตรเป็นค่าทดลองของโครงการภายใต้นโยบายผู้ใช้ ไม่ใช่ขอบกรรมสิทธิ์หรือมาตรฐานกรุงเทพมหานคร ผลที่เหลือยังเป็น candidate ไม่ใช่สวนสาธารณะที่ยืนยันสิทธิแล้ว OSM ที่ไม่ครบยังทำให้มีบ้านที่ไม่ถูกกันออกได้ ห้ามกล่าวว่าเอาสวนในบ้านออกได้ทั้งหมด
 
@@ -40,7 +39,6 @@ result = analyse_scene(
 )
 ```
 
-ผลล่าสุด: Output/nike-public-final-20261025 และ Output/frontend-public-20261025 ชุดตรวจ eligibility labels: Output/eligible-label-review-20261025 ภาพหลักฐาน labels เดิมยังอยู่ที่ Output/labels-assistant-20261025
 
 ในการประมวลผลซ้ำจากผลเดิม ต้องใช้ context bytes ที่ hashes ตรงกับ parent เดิม สำเนาที่ git เก็บมีเนื้อหาเดียวกับ data ปัจจุบัน แต่รูปแบบ CRLF/BOM ต่างกัน จึงกู้ bytes จาก commit 1817988 และตรวจ SHA256 ตรงก่อนใช้ ไม่เปลี่ยนเนื้อหาข้อมูลเพื่อให้ผ่าน hash
 

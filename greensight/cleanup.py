@@ -8,7 +8,6 @@ from rasterio.enums import ColorInterp
 from .heatmap import make_heatmap
 from .park_verify import prepare_park_review
 from .scene import read_json,write_json,digest
-from .report import write_report
 from .pending import separate_pending,write_pending
 from .exclusions import exclude_context, exclude_policy_areas
 
@@ -105,5 +104,5 @@ def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='da
         write_json(folder/'status.json',{'status':'complete','scene_id':scene})
         updated.append(s)
         print(scene,old['stats']['retainedCandidateAreaM2'],'->',s['stats']['retainedCandidateAreaM2'],flush=True)
-    write_report(output,updated)
+    write_json(output/'summary-all.json',updated)
     return updated

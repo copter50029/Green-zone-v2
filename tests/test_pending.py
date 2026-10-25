@@ -9,7 +9,6 @@ from greensight.heatmap import make_heatmap
 from greensight.pending import separate_pending
 from greensight.scene import analyse_scene,write_json
 from greensight.audit import audit_scene
-from greensight.handoff import export_frontend
 
 class PendingTests(unittest.TestCase):
     def policy(self,grid):
@@ -43,9 +42,3 @@ class PendingTests(unittest.TestCase):
             report=audit_scene(root/'run'/'s',root/'source.tif',context_path=root/'context.json',pending_path=root/'pending.json')
             self.assertEqual(report['source_pixels_checked'],2800)
             self.assertEqual(report['separate_pending_pixels'],400)
-
-            write_json(root/'run'/'summary-all.json',[result])
-            entry=export_frontend(root/'run',root/'web',max_size=100)['scenes'][0]
-            self.assertEqual(entry['pending_area_m2'],400)
-            self.assertFalse(entry['pending_in_main_total'])
-            self.assertTrue((root/'web'/entry['pending']).is_file())

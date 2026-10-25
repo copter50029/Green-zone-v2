@@ -8,10 +8,9 @@ from rasterio.warp import transform_geom
 from greensight.exclusions import exclude_context
 from greensight.scene import analyse_scene,write_json,read_json
 from greensight.cleanup import clean_saved_results
-from greensight.handoff import export_frontend
 
 class CleanupTests(unittest.TestCase):
-    def test_cached_cleanup_preserves_grid_unknowns_and_exports(self):
+    def test_cached_cleanup_preserves_grid_unknowns_and_parent(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder); registry=root/'registry.json'
             write_json(registry,{'type':'FeatureCollection','features':[]})
@@ -38,5 +37,4 @@ class CleanupTests(unittest.TestCase):
             with rasterio.open(root/'new/s/heatmap.tif') as src:
                 self.assertTrue((src.read(4)[blocked]==0).all())
             self.assertEqual(summary_bytes,(root/'old/s/summary.json').read_bytes())
-            self.assertEqual(export_frontend(root/'new',root/'web')['scenes'][0]['candidate_area_m2'],result['stats']['retainedCandidateAreaM2'])
             with self.assertRaises(FileExistsError):clean_saved_results(root/'old',root/'new',registry_path=registry)

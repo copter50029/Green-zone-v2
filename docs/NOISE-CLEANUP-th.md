@@ -17,5 +17,3 @@ results = clean_saved_results('Output/nike-scenes-20261025',
 `make_heatmap` และ `analyse_scene` ค่าเริ่มต้นของ library ยังคง clean_radius_m=0 เพื่อรองรับโค้ดเดิม ส่วน data/scenes.json ของงานนี้ตั้ง 2 เมตรแล้ว และ CLI ภาพเดียวใช้ --clean-radius-m 2 เป็นค่าเริ่มต้น
 
 ผลใหม่: Output/nike-clean-20261025 เก็บแยกจากเดิม ตรวจ parent mask hashes และทะเบียนก่อนใช้ เก็บ cleanup_parent พร้อม hash และพื้นที่เดิม, clean_radius_m, cleanup_method และ hashes ของโค้ดใหม่ไว้ใน summary.json สถิติ originalCandidate ของรัน cleanup หมายถึง mask จาก parent ไม่ใช่ raw ratio ก่อน exclusions ใช้ inputCandidatePixels / morphologyRemovedPixels / totalRemovedFromInputM2 ตรวจจำนวนที่ตัดได้
-
-ผลเก่าที่ส่งต่อแล้วไม่เปลี่ยนอัตโนมัติ ต้องใช้ชุด frontend-clean-20261025 ที่ส่งออกจากผลใหม่แทน ไม่รวม candidate จากคนละรันเข้าด้วยกัน

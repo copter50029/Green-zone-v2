@@ -77,3 +77,12 @@ OSM context snapshots were formatted to one GeoJSON feature per line to keep cod
 - Audits passed for 1668988808 source positions including NoData, 108000000 valid pixels. Archived exact bytes for all 14 recorded code modules per scene and frozen input/config/policy snapshots.
 - Updated README around the authoritative results, function usage, teammate handoff, reproducibility and remaining semantic limitations; no claims of real accuracy, public ownership or complete private-yard rejection.
 - PowerShell verified every export hash, recorded code hash, all 921 catalog entries, three full audits and 51 report assets. No remote publication; grid.py user edit preserved.
+
+### 2026-10-25 — Backend-only scope requested by user
+- Removed active web-export module, HTML report generator, projected web bundles/ZIPs, HTML outputs, dedicated web docs and web-only tests. Retained the three human label-review tests in test_label_review.py.
+- Deleted web files by explicit verified literal paths after computed-path bulk deletion was rejected by the approval policy. Source TIFFs, grid.py and native analysis/evidence outputs were preserved.
+- run_all/clean_saved_results now write summary-all.json directly; no UI or HTML generation.
+- Added find_parks_in_image()/verify_parks.py: district-metadata filtering plus all-band valid-pixel lookup; coordinates unchanged, no automatic public-access confirmation. Official reference is https://greener.bangkok.go.th/en/map-15-minute-garden/; local registry snapshot date stays 2026-10-23.
+- User explicitly retained all three images as separate geographic cases. Don Mueang-filtered lookup: Theos00=2; Theos01=0; Theos02=0. Theos01 is outside Bangkok; no-match is not proof of no parks.
+- Backend-only tests: 46 passed on installed Python 3.12.14 fallback runtime. Real TIFF 2000x2000 smoke + exhaustive audit passed with 4000000 valid pixels / 6597.75m2 candidate / no HTML. Rasterio emitted the expected non-georeferenced PNG-preview warning; native GeoTIFF audit passed.
+- Rewrote README and backend handoff docs around functions, policies, outputs and explicit verification limits. Prior work-log entries describe historical scope, not active web functionality. No GitHub publication.

@@ -38,12 +38,6 @@ pre_partition_candidate_area_m2 = main_candidate_area_m2 + pending_candidate_are
 
 ไฟล์ใหม่ pending-mask.tif เป็น 0/1/255 บนกริดเดิม และ pending.tif เป็น RGBA สีเหลืองเฉพาะ candidate ที่แยกไว้ ไม่มี halo ของผลหลักในบริเวณ pending ยืนยันว่า main/pending ไม่ซ้อนกันและไม่เพิ่มพืชจาก raw mask
 
-## Frontend
-
-manifest ยังคง field เดิม เพิ่ม optional `pending` (PNG สีเหลือง), `pending_area_m2` และ `pending_in_main_total=false` วางภาพ pending ด้วย bounds เดียวกับ source/heatmap ให้แยกสวิตช์ชื่อ “พื้นที่รอตรวจ — ไม่รวมยอดหลัก”
-
-UI ควรเรียกผลหลักว่า “พื้นที่สีเขียวเข้าข่าย” และแสดง “สวนยืนยันแล้ว: 0” ตามหลักฐาน ไม่ใช้คำว่า public park verified แทน candidate ทุกจุดใน patch-review-catalog.json ยังต้องตรวจความหมายและการเข้าใช้จริง
-
 ## จุดที่ยังต้องมีคนหรือหลักฐานเพิ่ม
 
 ไม่มีคนตรวจ labels อิสระ ไม่มี metadata calibration เฉพาะไฟล์ครบ ไม่มีขอบกรรมสิทธิ์/ทางเข้า/เวลาเปิดปัจจุบันครบ จึงไม่มี accuracy จริง การตรวจซ้ำด้วยโปรแกรมและดูภาพย่อไม่สามารถแทนหลักฐานเหล่านี้ได้ ภาพ THEOS01 อยู่คนละตำแหน่งกับกรุงเทพฯ ตามพิกัดต้นฉบับ จึงไม่ใช้การไม่มีหมุดทะเบียนกรุงเทพฯ ตัดสินว่าไม่มีสวนในภาพ
@@ -62,4 +56,10 @@ UI ควรเรียกผลหลักว่า “พื้นที่�
 
 Tests รันสำเร็จล่าสุด 46 ข้อผ่าน รวม pending partition/native export/audit การรันซ้ำหลังอัปเดต README ถูก Windows ปฏิเสธการเปิด Python ก่อนเริ่ม tests แม้ grant read permission แล้ว จึงบันทึกเป็น blocked repeat ไม่ใช่ pass ครั้งใหม่ ไม่ใช่ failure ของ test cases โค้ดไม่เปลี่ยนหลังการรันสำเร็จนั้น และตรวจ file hashes/catalog/README/report links ด้วย PowerShell ต่อจนครบ
 
-หน้ารวมผลล่าสุด Output/reviewed-final-report-20261025/index.html มี source, main, pending แยกสวิตช์ และภาพหลักฐานก่อนการแก้บริบท 432 ช่อง ชุดส่งต่อ Output/frontend-reviewed-20261025.zip ยังไม่ผ่าน end-to-end กับ frontend ของเพื่อนจริง
+## ปรับ scope เป็น backend-only (25 ตุลาคม 2569)
+
+ลบตัวสร้าง HTML/ชุดส่งออกเว็บและ tests เฉพาะเว็บตามคำสั่งผู้ใช้ เก็บ tests ตรวจ labels ไว้แยกไฟล์ และให้ run_all/clean_saved_results เขียน summary-all.json โดยตรง ไม่สร้าง index.html
+
+รัน backend tests ใหม่ด้วย Python 3.12.14 ได้ 46 ข้อผ่าน และรัน run_all กับ TIFF tile จริง 2000×2000 พร้อม audit ทุกพิกเซลผ่าน: valid 4,000,000 พิกเซล, candidate 6,597.75 ตร.ม., ไม่มี HTML ผลอยู่ Output/backend-only-smoke-20261025 ส่วนการเทียบทะเบียนดอนเมืองกับ TIFF ทั้งสามภาพอยู่ Output/backend-park-lookup-20261025
+
+เอกสาร audit ก่อนหน้านี้เป็นหลักฐาน ณ scope เดิม ไฟล์เว็บและโมดูลเว็บใน code-used ถูกลบออกแล้วตามคำสั่งล่าสุด จึงไม่อ้างว่า archive เก่ามีไฟล์ครบทุก module ในสถานะปัจจุบัน

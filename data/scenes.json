@@ -31,5 +31,6 @@
   "house_buffer_m": 20,
   "residential_buffer_m": 10,
   "policy_exclusions": "data/labels/area-exclusions.geojson",
-  "pending_areas": "data/labels/pending-areas.geojson"
+  "pending_areas": "data/labels/pending-areas.geojson",
+  "min_area_m2": 300
 }
