@@ -69,6 +69,28 @@ class HeatmapTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 make_heatmap([[1]], 1, **options)
 
+    def test_cleanup_breaks_thin_bridges_before_size_filter(self):
+        mask=np.zeros((65,110),dtype='uint8')
+        mask[10:40,5:35]=1
+        mask[20:30,70:80]=1
+        mask[25,35:70]=1
+        mask[:,100:]=255
+        mask[50,50]=2
+        original=mask.copy()
+        result=make_heatmap(mask,1,clean_radius_m=2)
+        self.assertGreater(result['stats']['morphologyRemovedPixels'],0)
+        self.assertTrue((result['mask'][20:30,70:80]==0).all())
+        self.assertTrue((result['mask'][25,40:70]==0).all())
+        self.assertEqual(result['mask'][50,50],2)
+        self.assertFalse(((result['mask']==1)&(mask!=1)).any())
+        self.assertTrue((result['rgba'][:,100:]==0).all())
+        np.testing.assert_array_equal(mask,original)
+
+    def test_cleanup_rejects_invalid_or_excessive_kernels(self):
+        for radius in (-1,True,float('nan'),11):
+            with self.assertRaises(ValueError): make_heatmap([[1]],.5,clean_radius_m=radius)
+        with self.assertRaises(ValueError): make_heatmap([[1]],.01,clean_radius_m=2)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -22,7 +22,8 @@ def run_all(config_path='data/scenes.json', out_dir='Output/nike-scenes'):
             scene['path'], output/scene['id'], scene_id=scene['id'],
             red_band=scene['red_band'], nir_band=scene['nir_band'],
             context_path=scene.get('context'), imagery_date=scene.get('imagery_date'),
-            registry_path=settings.get('registry'), progress=lambda message: print(message,flush=True)))
+            registry_path=settings.get('registry'),
+            clean_radius_m=scene.get('clean_radius_m',settings.get('clean_radius_m',0)), progress=lambda message: print(message,flush=True)))
     write_report(output, results)
     return results
 
@@ -41,6 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('--exclude')
     parser.add_argument('--context')
     parser.add_argument('--imagery-date')
+    parser.add_argument('--clean-radius-m',type=float,default=2)
     args = parser.parse_args()
     if args.all:
         results = run_all(args.config,args.output)
@@ -51,6 +53,6 @@ if __name__ == '__main__':
         result = analyse_scene(args.tif_path,args.out_dir,scene_id=args.scene_id,
                                red_band=args.red_band,nir_band=args.nir_band,
                                registry_path=args.registry,exclude_path=args.exclude,
-                               context_path=args.context,imagery_date=args.imagery_date,
+                               context_path=args.context,imagery_date=args.imagery_date,clean_radius_m=args.clean_radius_m,
                                progress=lambda message: print(message,flush=True))
         print(json.dumps(result,indent=2))

@@ -4,7 +4,7 @@ from typing import Literal, TypedDict
 
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
-from scipy.ndimage import distance_transform_edt, label
+from scipy.ndimage import distance_transform_edt, label, binary_opening
 
 
 class HeatmapResult(TypedDict):
@@ -52,6 +52,7 @@ def make_heatmap(
     radius_m: int = 50,
     *,
     style: Literal["red", "spectrum", "grid"] = "red",
+    clean_radius_m: float = 0,
 ) -> HeatmapResult:
     """Return filtered mask, RGBA uint8 image and patch-area statistics.
 
@@ -73,7 +74,22 @@ def make_heatmap(
     if source.ndim != 2 or not all(source.shape) or not np.isin(source, [0, 1, 2, 255]).all():
         raise ValueError("mask must be non-empty, 2-D and contain only 0, 1, 2, 255")
 
-    filtered, stats = _filter_patches(source, pixel_area, minimum)
+    if isinstance(clean_radius_m, bool) or not isinstance(clean_radius_m, Real) or not np.isfinite(clean_radius_m) or not 0 <= clean_radius_m <= 10:
+        raise ValueError("clean_radius_m must be finite from 0 to 10 metres")
+    cleaned = source.copy()
+    if clean_radius_m:
+        pixels = int(np.ceil(clean_radius_m / pixel_m))
+        if pixels > 64:
+            raise ValueError("Cleanup kernel exceeds 64-pixel radius")
+        yy, xx = np.ogrid[-pixels:pixels+1, -pixels:pixels+1]
+        disk = (xx*pixel_m)**2 + (yy*pixel_m)**2 <= clean_radius_m**2
+        opened = binary_opening(source == 1, structure=disk) & (source == 1)
+        cleaned[(source == 1) & ~opened] = 0
+    filtered, stats = _filter_patches(cleaned, pixel_area, minimum)
+    input_pixels = int((source == 1).sum())
+    stats.update(cleanRadiusM=float(clean_radius_m), inputCandidatePixels=input_pixels,
+                 morphologyRemovedPixels=int(((source == 1) & (cleaned != 1)).sum()),
+                 totalRemovedFromInputM2=(input_pixels-stats["retainedCandidatePixels"])*pixel_area)
     rgba = np.zeros((*filtered.shape, 4), dtype="uint8")
     seeds = filtered == 1
     if seeds.any():

@@ -1,0 +1,33 @@
+import tempfile
+import unittest
+from pathlib import Path
+import numpy as np
+import rasterio
+from rasterio.transform import from_origin
+from greensight.scene import analyse_scene,write_json,read_json
+from greensight.cleanup import clean_saved_results
+from greensight.handoff import export_frontend
+
+class CleanupTests(unittest.TestCase):
+    def test_cached_cleanup_preserves_grid_unknowns_and_exports(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder); registry=root/'registry.json'
+            write_json(registry,{'type':'FeatureCollection','features':[]})
+            data=np.full((4,70,100),100,dtype='uint16')
+            data[3,10:40,5:35]=300
+            data[3,20:30,70:80]=300
+            data[3,25,35:70]=300
+            data[:,:3,:]=65535
+            with rasterio.open(root/'source.tif','w',driver='GTiff',width=100,height=70,count=4,dtype='uint16',nodata=65535,crs='EPSG:32647',transform=from_origin(670000,1540000,1,1)) as dst:dst.write(data)
+            old=analyse_scene(root/'source.tif',root/'old'/'s',scene_id='s',red_band=3,nir_band=4,registry_path=registry)
+            write_json(root/'old'/'summary-all.json',[old])
+            summary_bytes=(root/'old/s/summary.json').read_bytes()
+            result=clean_saved_results(root/'old',root/'new',clean_radius_m=2,registry_path=registry)[0]
+            self.assertLess(result['stats']['retainedCandidateAreaM2'],old['stats']['retainedCandidateAreaM2'])
+            with rasterio.open(root/'old/s/candidate-mask.tif') as a,rasterio.open(root/'new/s/candidate-mask.tif') as b:
+                self.assertEqual((a.crs,a.transform,a.shape),(b.crs,b.transform,b.shape))
+                self.assertFalse(((b.read(1)==1)&(a.read(1)!=1)).any())
+                np.testing.assert_array_equal(a.read(1)==255,b.read(1)==255)
+            self.assertEqual(summary_bytes,(root/'old/s/summary.json').read_bytes())
+            self.assertEqual(export_frontend(root/'new',root/'web')['scenes'][0]['candidate_area_m2'],result['stats']['retainedCandidateAreaM2'])
+            with self.assertRaises(FileExistsError):clean_saved_results(root/'old',root/'new',registry_path=registry)

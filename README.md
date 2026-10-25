@@ -94,3 +94,8 @@ result = make_heatmap(mask, pixel_m=0.5, min_area_m2=300, radius_m=50)
 ## ส่งให้เพื่อนทำ frontend / ตรวจ labels
 
 เรียก `export_frontend(run_dir, out_dir)` ได้ชุด PNG ที่จัดพิกัดสำหรับแผนที่เว็บ, GeoJSON และ manifest เดียว พร้อม `prepare_label_review()` / `apply_label_review()` สำหรับเก็บคำตอบตรวจโดยคนโดยไม่แก้ labels เดิม ดู [คู่มือส่งต่อพร้อมตัวอย่าง](docs/FRONTEND-HANDOFF-th.md)
+
+
+## ตัด noise เพิ่มเติม
+
+ตั้ง `clean_radius_m=2` ใน data/scenes.json แล้ว ตัดเส้นเชื่อมบางและจุดย่อยก่อนกรองกลุ่ม ≥300 ตร.ม. ซ้ำ แล้วสร้าง halo ใหม่ ดู [วิธีและข้อแลกเปลี่ยน](docs/NOISE-CLEANUP-th.md) ผลล่าสุดอยู่ `Output/nike-clean-20261025` และชุดส่งต่อ `Output/frontend-clean-20261025`

@@ -42,7 +42,7 @@ def write_json(path, value):
 def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
                   registry_path=None, context_path=None, exclude_path=None,
                   imagery_date=None, window_size=512, min_area_m2=300,
-                  radius_m=50, progress=None):
+                  radius_m=50, clean_radius_m=0, progress=None):
     """Process a TIFF once in windows; merge before patch filtering/heatmap.
 
     Outputs preserve the source CRS and native pixel grid, cropped only to
@@ -57,7 +57,7 @@ def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
     context = read_json(context_path) if context_path else None
     # Validate user options before reading a large input or creating output.
     detect_green(np.ones((4, 1, 1)), red_band=red_band, nir_band=nir_band)
-    make_heatmap(np.zeros((1, 1), dtype='uint8'), 1, min_area_m2, radius_m)
+    make_heatmap(np.zeros((1, 1), dtype='uint8'), 1, min_area_m2, radius_m, clean_radius_m=clean_radius_m)
     list(windows(1, 1, window_size))
     stamp = (tif_path.stat().st_size, tif_path.stat().st_mtime_ns)
     if progress:
@@ -121,7 +121,7 @@ def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
             mask, exclusion_report = exclude_context(mask, context, transform, src.crs)
         if progress:
             progress(f'{scene_id}: global patch filter and distance over {mask.shape}')
-        result = make_heatmap(mask, src.res[0], min_area_m2, radius_m)
+        result = make_heatmap(mask, src.res[0], min_area_m2, radius_m, clean_radius_m=clean_radius_m)
         tasks = prepare_park_review(registry, result['mask'], transform, src.crs,
                                     scene_id=scene_id, imagery_date=imagery_date)
         profile.update(width=int(crop.width), height=int(crop.height), transform=transform)
@@ -161,7 +161,7 @@ def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
             'source_shape':[src.height,src.width], 'crop_window':[int(crop.col_off),int(crop.row_off),int(crop.width),int(crop.height)],
             'transform':list(transform)[:6], 'crs':src.crs.to_string(),
             'window_size':window_size,'windows_scanned':total,'data_windows':nonempty,
-            'minimum_patch_m2':min_area_m2,'halo_radius_m':radius_m,
+            'clean_radius_m':clean_radius_m, 'minimum_patch_m2':min_area_m2,'halo_radius_m':radius_m,
             'exclusion_supplied':bool(context_path or exclude_path), 'context_exclusions':exclusion_report,
             'stats':result['stats'], 'review_tasks':len(tasks['features']), 'verified_parks':0,
             'provenance':{'source_sha256':source_hash,

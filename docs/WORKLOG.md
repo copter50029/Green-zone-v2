@@ -47,3 +47,9 @@ OSM context snapshots were formatted to one GeoJSON feature per line to keep cod
 - Added prepare_label_review()/apply_label_review(): 42 blank decisions; explicit reviewer/date/notes required; uncertain withheld, original annotations preserved, splits retained.
 - Added five tests; full suite 39 passed. Frontend integration contract tested locally; teammate frontend not available for end-to-end verification.
 - grid.py hash unchanged; no GitHub push or PR.
+
+### 2026-10-25 — Remove small noise before heatmap
+- Added opt-in metric disk opening (2m in project config), then repeated global 300m2 area filtering and rebuilt all halos; no filling or added candidates.
+- Cleaned all three saved full-scene masks with parent hashes, preserved old outputs. Areas: Theos00 473661.50 -> 439651.25 m2; Theos01 2796586.50 -> 2667583.00; Theos02 621733.25 -> 560430.00.
+- Regenerated frontend-clean-20261025 package/zip, new final-clean-review page and before/after images. Full suite: 42 passed.
+- Narrow real vegetation may also be removed. No semantic-accuracy or park-access claim; no GitHub publication.
