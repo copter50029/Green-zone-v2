@@ -38,3 +38,5 @@ Results: Theos00 473661.50 m2; Theos01 2796586.50 m2; Theos02 621733.25 m2 candi
 Park desk checks: row-476 has registry photograph and Dec 2025 street-view context from prior desk check; row-35 source Maps short link resolves to the same coordinate, but direct Street View query returns no imagery. Neither has independently confirmed current access/entrance. Original reference positions preserved. See FULL-SCENE-METHODS-th.md and Output/nike-scenes-20261025/checks.json.
 
 No GitHub push, remote branch creation, PR or merge attempted. Existing local grid.py edit remains untouched and outside Nike commits.
+
+OSM context snapshots were formatted to one GeoJSON feature per line to keep code reviews manageable; parsed JSON content was checked unchanged. Exact pre-format input bytes used for the actual runs remain recoverable in local commit 1817988, matching per-scene context_sha256. Formatting changed file hashes, not geometry or results; no duplicate full-scene run was performed for formatting alone. Exact module bytes matching every code_sha256 (8/8 modules per scene) were archived under each result's code-used/ folder.
