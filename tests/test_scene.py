@@ -82,6 +82,21 @@ class SceneTests(unittest.TestCase):
         self.assertEqual(report['skipped_non_polygon_or_invalid'],1)
         self.assertEqual(int((mask==1).sum())-int((result==1).sum()),sum(report['removed_candidate_m2'].values()))
 
+    def test_house_context_removes_yard_and_returns_halo_clip(self):
+        grid=from_origin(670000,1540000,1,1)
+        geom={'type':'Polygon','coordinates':[[[670040,1539960],[670045,1539960],[670045,1539955],[670040,1539955],[670040,1539960]]]}
+        context={'features':[{'geometry':transform_geom('EPSG:32647','EPSG:4326',geom),'properties':{'tags':{'building':'house'}}}]}
+        mask=np.ones((100,100),dtype='uint8');mask[0,0]=255
+        normal,_=exclude_context(mask,context,grid,'EPSG:32647')
+        strict,report,blocked=exclude_context(mask,context,grid,'EPSG:32647',building_buffer_m=8,house_buffer_m=20,return_exclusion_mask=True)
+        self.assertEqual(normal[42,58],1)
+        self.assertEqual(strict[42,58],0)
+        self.assertTrue(blocked[42,58])
+        self.assertEqual(strict[90,90],1)
+        self.assertEqual(strict[0,0],255)
+        self.assertGreater(report['removed_candidate_m2']['house_context'],0)
+        self.assertEqual(int((mask==1).sum())-int((strict==1).sum()),sum(report['removed_candidate_m2'].values()))
+
 
 if __name__=='__main__':
     unittest.main()

@@ -42,7 +42,7 @@ def write_json(path, value):
 def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
                   registry_path=None, context_path=None, exclude_path=None,
                   imagery_date=None, window_size=512, min_area_m2=300,
-                  radius_m=50, clean_radius_m=0, progress=None):
+                  radius_m=50, clean_radius_m=0, building_buffer_m=2, house_buffer_m=0, residential_buffer_m=0, progress=None):
     """Process a TIFF once in windows; merge before patch filtering/heatmap.
 
     Outputs preserve the source CRS and native pixel grid, cropped only to
@@ -58,6 +58,8 @@ def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
     # Validate user options before reading a large input or creating output.
     detect_green(np.ones((4, 1, 1)), red_band=red_band, nir_band=nir_band)
     make_heatmap(np.zeros((1, 1), dtype='uint8'), 1, min_area_m2, radius_m, clean_radius_m=clean_radius_m)
+    exclude_context(np.zeros((1,1),dtype='uint8'),{'features':[]},rasterio.Affine(1,0,0,0,-1,1),'EPSG:32647',
+                    building_buffer_m=building_buffer_m,house_buffer_m=house_buffer_m,residential_buffer_m=residential_buffer_m)
     list(windows(1, 1, window_size))
     stamp = (tif_path.stat().st_size, tif_path.stat().st_mtime_ns)
     if progress:
@@ -117,11 +119,14 @@ def analyse_scene(tif_path, out_dir, *, scene_id, red_band, nir_band,
         if int((mask != 255).sum()) != seen:
             raise RuntimeError('Window merging lost or invented valid pixels')
         exclusion_report = None
+        blocked = None
         if context:
-            mask, exclusion_report = exclude_context(mask, context, transform, src.crs)
+            mask, exclusion_report, blocked = exclude_context(mask, context, transform, src.crs, building_buffer_m=building_buffer_m,house_buffer_m=house_buffer_m,residential_buffer_m=residential_buffer_m,return_exclusion_mask=True)
         if progress:
             progress(f'{scene_id}: global patch filter and distance over {mask.shape}')
         result = make_heatmap(mask, src.res[0], min_area_m2, radius_m, clean_radius_m=clean_radius_m)
+        if blocked is not None:
+            result['rgba'][blocked]=0
         tasks = prepare_park_review(registry, result['mask'], transform, src.crs,
                                     scene_id=scene_id, imagery_date=imagery_date)
         profile.update(width=int(crop.width), height=int(crop.height), transform=transform)

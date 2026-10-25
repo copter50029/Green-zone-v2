@@ -73,3 +73,15 @@
 อ่านผล `summary-all.json`, `checks.json`, `areas.csv`, `tests.log` และ summary/provenance ต่อภาพใน Output ชุดเดิม คำสั่ง run ใหม่ต้องเลือกโฟลเดอร์ใหม่เพื่อรักษาผลเก่า
 
 ข้อมูล OSM มีที่มา attribution © OpenStreetMap contributors และ [ODbL](https://www.openstreetmap.org/copyright) เก็บ retrieved UTC, raw/query/context hashes และ coverage geometry ใน data/exclusions ทุกไฟล์
+
+## ผลปรับปรุงล่าสุด: คัดบริบทบ้านออก (25 ตุลาคม 2569)
+
+ตามผู้ใช้เลือกให้กันพื้นที่กำกวมใกล้บ้านออกก่อน เพิ่มระยะคัดอาคาร/บ้าน/residential เป็น 8/20/10 เมตร และ morphology รัศมี 3 เมตร ก่อนคัดกลุ่ม 300 ตร.ม. ซ้ำ ตัดสี halo จาก exclusion mask ด้วย ผลใหม่แยกที่ `Output/nike-public-final-20261025` ไม่เขียนทับการทดลองเดิมในรายงานนี้
+
+| ภาพ | พื้นที่ candidate หลังคัดเข้ม ตร.ม. |
+| --- | ---: |
+| Theos00 | 372,643.00 |
+| Theos01 | 2,379,871.75 |
+| Theos02 | 451,337.00 |
+
+ค่าข้างต้นยังไม่ใช่พื้นที่สวนสาธารณะที่รับรองได้ และยังไม่ยืนยันว่าตัดต้นไม้ในบ้านได้ครบเพราะข้อมูลที่อยู่อาศัยอาจไม่ครบ แยก labels พืชออกจาก labels การให้นับเป็นพื้นที่สวน ดู [วิธีคัดและหลักฐาน](PUBLIC-GREEN-SCREENING-th.md) · ชุด frontend ล่าสุด `Output/frontend-public-20261025` · หน้ารวมผล `Output/final-public-review-20261025/index.html`

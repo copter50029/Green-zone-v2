@@ -53,3 +53,11 @@ OSM context snapshots were formatted to one GeoJSON feature per line to keep cod
 - Cleaned all three saved full-scene masks with parent hashes, preserved old outputs. Areas: Theos00 473661.50 -> 439651.25 m2; Theos01 2796586.50 -> 2667583.00; Theos02 621733.25 -> 560430.00.
 - Regenerated frontend-clean-20261025 package/zip, new final-clean-review page and before/after images. Full suite: 42 passed.
 - Narrow real vegetation may also be removed. No semantic-accuracy or park-access claim; no GitHub publication.
+
+### 2026-10-25 — Conservative residential eligibility
+- User explicitly chose exclusion of ambiguous housing-context vegetation, accepting loss of public roadside/nearby green.
+- Added configurable building/house/residential buffers (8/20/10m in project settings), 3m opening, and clipped all halos to exclusion mask.
+- Added separate 42-core eligibility interpretations, including six residential-context vegetation exclusions; retained original vegetation labels, no invented public-park positive references or human review.
+- Recomputed three native masks: 372643.00 / 2379871.75 / 451337.00 m2; verified no added candidates, preserved NoData and native area counts; sampled mapped-building cores for mask exclusion and alpha zero.
+- Restored original cached-context bytes from Git plus matching newline/BOM variants and verified parent SHA256; archived context-used.geojson alongside outputs.
+- Generated frontend-public-20261025 and final-public-review-20261025; full suite 43 passed. Mapping remains incomplete; no claim all private gardens are eliminated, no new ML accuracy claim, no remote publication.

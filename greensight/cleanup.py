@@ -9,9 +9,11 @@ from .heatmap import make_heatmap
 from .park_verify import prepare_park_review
 from .scene import read_json,write_json,digest
 from .report import write_report
+from .exclusions import exclude_context
 
 
-def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='data/parks15.geojson'):
+def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='data/parks15.geojson',
+                        contexts=None, building_buffer_m=2, house_buffer_m=0, residential_buffer_m=0):
     """Remove narrow/small candidate fragments, recheck >=300m2, rebuild halos.
 
     Works on globally merged masks. Never adds candidate pixels; previous
@@ -29,6 +31,11 @@ def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='da
         for name in ('candidate-mask.tif','source.png'):
             if digest(source/scene/name)!=old['artifact_sha256'][name]: raise ValueError('Source hash mismatch')
         if digest(registry_path)!=old['provenance']['registry_sha256']: raise ValueError('Registry snapshot changed')
+    if contexts:
+        for old in results:
+            context_path=contexts[old['scene_id']]
+            if digest(context_path)!=old['provenance']['context_sha256']:
+                raise ValueError('Context snapshot changed')
     output.mkdir(parents=True)
     updated=[]
     for old in results:
@@ -36,7 +43,15 @@ def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='da
         write_json(folder/'status.json',{'status':'processing','scene_id':scene})
         with rasterio.open(source/scene/'candidate-mask.tif') as src:
             mask=src.read(1); profile=src.profile.copy()
-            cleaned=make_heatmap(mask,old['pixel_m'],old['minimum_patch_m2'],old['halo_radius_m'],clean_radius_m=clean_radius_m)
+            eligibility_report=None
+            filtered=mask
+            blocked=None
+            if contexts:
+                filtered,eligibility_report,blocked=exclude_context(mask,read_json(contexts[scene]),src.transform,src.crs,
+                    building_buffer_m=building_buffer_m,house_buffer_m=house_buffer_m,residential_buffer_m=residential_buffer_m,return_exclusion_mask=True)
+            cleaned=make_heatmap(filtered,old['pixel_m'],old['minimum_patch_m2'],old['halo_radius_m'],clean_radius_m=clean_radius_m)
+            if blocked is not None:
+                cleaned['rgba'][blocked]=0
             assert not ((cleaned['mask']==1)&(mask!=1)).any()
             with rasterio.open(folder/'candidate-mask.tif','w',**profile) as dst: dst.write(cleaned['mask'],1)
             profile.update(count=4,nodata=None)
@@ -56,6 +71,11 @@ def clean_saved_results(run_dir, out_dir, *, clean_radius_m=2, registry_path='da
                  cleanup_parent={'summary_sha256':digest(source/scene/'summary.json'),'candidate_sha256':old['artifact_sha256']['candidate-mask.tif'],
                                  'candidate_area_m2':old['stats']['retainedCandidateAreaM2'],'run_directory':str(source.resolve())},
                  cleanup_method='disk morphological opening, then global four-neighbour area filter; no filling or added vegetation')
+        if eligibility_report is not None:
+            s['additional_eligibility_exclusions']=eligibility_report
+            s['halo_clipped_to_exclusion_mask']=True
+            s['eligibility_status']='conservative_screening_not_verified_public_land'
+            s['limitations'].append('House/residential buffers deliberately exclude ambiguous neighbouring vegetation; incomplete mapping can still miss private yards.')
         s['provenance']['code_sha256']={p.name:digest(p) for p in Path(__file__).parent.glob('*.py')}
         s['limitations'].append('Morphology removes narrow vegetation and canopy fringes too; it does not prove semantic accuracy.')
         s['artifact_sha256']={name:digest(folder/name) for name in ('candidate-mask.tif','heatmap.tif','park-review.geojson','source.png','heatmap.png')}
