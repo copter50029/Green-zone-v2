@@ -1,3 +1,5 @@
+> เอกสารร่างในเครื่องเท่านั้น ผู้ใช้สั่งยังไม่ส่ง GitHub/เปิด PR งานล่าสุดเพิ่ม full-scene processing และมี 27 tests ผ่าน ดู README หลักสำหรับขอบเขตปัจจุบัน
+
 # Nike: green-zone detection, heatmap and park review functions
 
 เพิ่ม Python functions สำหรับตรวจ candidate vegetation, กรองกลุ่มขั้นต่ำ 300 ตร.ม., สร้าง heatmap และเทียบหมุดสวน Greener Bangkok โดยไม่แก้ grid.py ของทีม

@@ -17,6 +17,7 @@ class RunnerTests(unittest.TestCase):
         data = np.full((4, 40, 40), 100, dtype="uint16")
         data[3, 10:30, 10:30] = 300
         data[:, 0, :] = 65535
+        data[:, 5, 5] = 65535
         grid = from_origin(670000, 1540000, 1, 1)
         with rasterio.open(path, "w", driver="GTiff", count=4, width=40, height=40,
                            dtype="uint16", crs="EPSG:32647", transform=grid, nodata=65535) as dst:
@@ -38,12 +39,12 @@ class RunnerTests(unittest.TestCase):
             self.assertEqual(result["review_tasks"], 1)
             self.assertEqual(result["verified_parks"], 0)
             with rasterio.open(root / "out/candidate-mask.tif") as src:
-                self.assertEqual(src.transform, grid)
+                self.assertEqual(src.transform, from_origin(670000,1539999,1,1))
                 self.assertEqual(src.crs.to_epsg(), 32647)
-                self.assertEqual(src.read(1)[0, 0], 255)
+                self.assertEqual(src.read(1)[4, 5], 255)
             with rasterio.open(root / "out/heatmap.tif") as src:
                 self.assertEqual(src.colorinterp[-1], ColorInterp.alpha)
-                self.assertEqual(src.read(4)[0, 0], 0)
+                self.assertEqual(src.read(4)[4, 5], 0)
             with self.assertRaises(FileExistsError):
                 run_analysis(root / "source.tif", root / "out", **options)
 

@@ -28,3 +28,13 @@ Frontend should consume georeferenced outputs; this package does not add HTTP/XY
 ## Publication status
 
 Local Git push could not invoke credential manager (MSYS directory object access error), so no authenticated push occurred. The connected GitHub account reported push permission, but the subsequent create-tree tool call was rejected with "user rejected MCP tool call". No remote branch or PR was created by this work. docs/PULL_REQUEST.md contains the prepared description and manual publish command. No alternate publication was attempted after the rejection.
+
+## 2026-10-25 — Full-scene completion pass (local only)
+
+Added analyse_scene/windows/exclude_context/evaluate_mask and a --all entry point. Processed all three source TIFFs, keeping partial edges and merging before global 300m2 filtering. Cached OSM buildings/residential/private polygons are now applied automatically, with disjoint removal areas and incomplete-context coverage reported. Native grid, valid counts and artifact hashes checked from real outputs. 27 synthetic tests passed. Prepared 51 draft inspection points; real reviewed labels remain zero.
+
+Results: Theos00 473661.50 m2; Theos01 2796586.50 m2; Theos02 621733.25 m2 candidate vegetation after mapped exclusions and patch filtering. These cover all valid source pixels, unlike earlier polygon-AOI figures. Results remain unvalidated.
+
+Park desk checks: row-476 has registry photograph and Dec 2025 street-view context from prior desk check; row-35 source Maps short link resolves to the same coordinate, but direct Street View query returns no imagery. Neither has independently confirmed current access/entrance. Original reference positions preserved. See FULL-SCENE-METHODS-th.md and Output/nike-scenes-20261025/checks.json.
+
+No GitHub push, remote branch creation, PR or merge attempted. Existing local grid.py edit remains untouched and outside Nike commits.

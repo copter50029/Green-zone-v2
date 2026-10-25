@@ -31,7 +31,7 @@ result = make_heatmap(mask, pixel_m=0.5, min_area_m2=300,
 
 `style`: red (ค่าเริ่มต้น), spectrum, grid (แบ่งแถบสีระยะ ไม่ใช่การ resample เป็นกริด 5 เมตร) ระยะเป็นเส้นตรงถึงศูนย์กลางพิกเซลพืช ไม่ใช่ระยะเดินหรือความร้อน ไม่ทำให้ classifier แม่นขึ้น
 
-รวม tile cores ของภาพเดียวกันก่อนกรองกลุ่มและสร้างระยะเพื่อป้องกันรอยต่อ ตัวอย่าง `run_nike.py` ใช้สำหรับ tile/crop ที่เล็กพอเท่านั้น ยังไม่ใช่ตัวรวม scene ขนาดใหญ่
+รวม tile cores ของภาพเดียวกันก่อนกรองกลุ่มและสร้างระยะเพื่อป้องกันรอยต่อ `analyse_scene()` และ `run_nike.py --all` อ่านทั้ง TIFF เป็น window รวมกริดก่อนกรองกลุ่มแล้ว โดย crop เฉพาะ NoData ภายนอกให้ขั้น global อยู่ในงบ 80 ล้านพิกเซล
 
 ## 3. prepare_park_review
 
@@ -73,3 +73,26 @@ GeoTIFF มีพิกัดแต่ไม่ใช่ XYZ tile URL หาก�
 ตัวอย่างที่ทดลอง: `tile_r7_c9.tif` ของ Theos00 ได้ candidate หลังกรอง 26,478.75 ตร.ม. ใน 30 กลุ่ม มีหมุดทะเบียนรอตรวจ 1 จุด ยืนยันจริง 0 จุด ตัวเลขเป็นผลกฎทดลองบน tile เดียว ไม่ใช่พื้นที่สวนที่ยืนยันหรือผลทั้ง 3 ภาพ
 
 ดู [ประวัติการตรวจและการเปลี่ยนแปลง](WORKLOG.md) สำหรับ scope ที่ทำแล้ว/ยังไม่ทำ
+
+
+## 5. analyse_scene และ run_all
+
+เรียกจาก `greensight` ได้โดยตรง ดูตัวอย่าง README หลัก ใช้ band 1 masks เป็นการคัดกรอง window ที่เป็น NoData ทั้งชิ้น แล้วตรวจทุก band ภายใน window ที่เหลือ เขียน raw-mask บนกริดต้นฉบับครบทุกขอบ ไม่เลื่อนภาพเพื่อให้ต่อกัน
+
+หลังรวมผล จะตรวจว่าจำนวน valid pixels ไม่เปลี่ยน ตัด NoData ภายนอกออกด้วย window ที่ตรงกริดเดิม จึงเปลี่ยนขนาด/ต้นกำเนิด raster ตาม offset ที่บันทึกไว้ ไม่เปลี่ยนขนาดพิกเซลหรือ resample ผล แล้วจึงตัด polygons ที่มีข้อมูล OSM และกรองกลุ่มทั่วภาพ ระยะ halo คำนวณหลังกรองกลุ่ม ไม่มี seam จากการกรองแยก tile
+
+Exclusions เป็นข้อมูลแผนที่อ้างอิง ไม่ใช่สิทธิที่ดิน อาคารใช้การขยาย mask ตามระยะ cell centre 2 เมตร ไม่ใช่ cadastral setback คง NoData ไว้เสมอ พื้นที่ตัดออกแต่ละเหตุผลนับแบบไม่ซ้ำเรียง buildings → residential → private_access
+
+ใช้ source SHA256 และตรวจ size/mtime หลังจบเพื่อจับการเปลี่ยน input ระหว่างรัน เก็บ hashes ของ registry/context/exclusion/code และ artifacts โฟลเดอร์ผลเดิมไม่เขียนทับ status=complete จะมีเมื่อขั้นตอนจบ หากรันล้มเหลวอาจเหลือโฟลเดอร์บางส่วน/status=processing ให้เลือก output ใหม่ ไม่เรียกผลนั้นว่าสำเร็จ
+
+## 6. evaluate_mask
+
+`target="vegetation"` ใช้กับ raw-mask จากรันที่ไม่ได้ให้ exclude_path (ก่อนตัด OSM); `target="eligible_green"` ใช้กับ final mask และ labels ของพืชที่ผ่านนโยบายคัดกรอง ห้ามถือว่าต้นไม้จริงในบ้านเป็น nonvegetation เพื่อทำ accuracy ให้ดูดี
+
+GeoJSON references ต้องระบุ target ตรงกัน geometry เป็น polygon WGS84 และ properties มี class=positive/negative, origin=human, split=test, review_status=reviewed, reviewer, observed_on แบบ ISO date, region_id เก็บตัวอย่างคนละพื้นที่กับข้อมูลฝึกและวันภาพให้ตรงกัน ผู้เรียกต้องพิสูจน์ independence/representativeness; fields อย่างเดียวไม่รับรองความจริง
+
+คืน confusion counts, precision, recall/F1/IoU บนพิกเซลที่จำแนกได้ พร้อม classified coverage, recall รวม abstentions และ accuracy ที่นับ uncertain ว่ายังตอบไม่ถูก ไม่ซ่อน uncertainty เพื่อเพิ่มคะแนน ถ้าไม่มี labels คืน reviewed_labels_required และ metrics=null ถ้า references ไม่ครบ/ทับกัน/คนละ target จะไม่ให้คะแนน
+
+Templates ที่มีอยู่ `data/references-vegetation.geojson` และ `data/references-eligible_green.geojson` ว่างจริง ห้ามเติม labels จาก mask อัตโนมัติแล้วอ้างเป็น independent truth
+
+ข้อสังเกต: ถ้าให้ `exclude_path` เป็น raster แบบ explicit โปรแกรมใช้มันใน detect ก่อนเขียน raw-mask ดังนั้น raw-mask ของรันนั้นไม่ใช่ vegetation-only สำหรับการประเมิน ให้แยกรันหรือใช้ detect_green ก่อนใส่ exclusion
