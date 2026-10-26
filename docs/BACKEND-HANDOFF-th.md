@@ -6,7 +6,7 @@
 
 1. README.md สำหรับคำสั่งและข้อจำกัดล่าสุด
 2. data/scenes.json สำหรับ TIFF, bands, buffers และ policy polygons
-3. run_nike.py / verify_parks.py เป็น entry points แล้วจึงอ่านฟังก์ชันใน greensight/
+3. run_backend.py (run_backend.cmd on Windows); run_nike.py / verify_parks.py เป็น entry points แล้วจึงอ่านฟังก์ชันใน greensight/
 
 ## ขอบเขตแต่ละโมดูล
 

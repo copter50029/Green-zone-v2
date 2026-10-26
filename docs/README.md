@@ -2,6 +2,7 @@
 
 Start with the root [README](../README.md) for installation and the complete workflow.
 
+- [Library guide](LIBRARY-GUIDE.md): every module, function, input, output, caller and change location.
 - [Backend handoff](BACKEND-HANDOFF-th.md): responsibilities and rules for the next developer.
 - [Full-scene methods](methods/FULL-SCENE-METHODS-th.md): processing and experiments.
 - [Full audit](methods/FULL-AUDIT-th.md): checks and remaining limitations.

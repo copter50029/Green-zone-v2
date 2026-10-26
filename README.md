@@ -2,6 +2,61 @@
 
 Python functions for **green-area detection, heatmaps and park verification**. There is no frontend. The team's `grid.py` stays separate.
 
+For a file-by-file explanation of every library module, its functions, inputs, outputs and callers, read the [Library guide](docs/LIBRARY-GUIDE.md).
+
+## Quick start: run the whole backend once
+
+After installing dependencies and placing the three TIFFs in `Images/`, run:
+
+```powershell
+.\run_backend.cmd
+```
+
+Or call Python directly (also works without activating the environment):
+
+```powershell
+.\.venv\Scripts\python.exe run_backend.py
+```
+
+This single entry point runs the existing functions in order:
+
+1. Preflight: check all configured image, registry and context paths.
+2. Detect green areas, remove configured noise/exclusions and create heatmaps for every scene.
+3. Find Don Mueang registry points on valid image pixels for every scene.
+4. Audit every source window, output grid, retained patch, area and artifact hash.
+5. Write combined results and a completion status.
+
+Output goes to a new timestamped folder under `Output/runs/`. No previous run is overwritten. Paths are resolved against this project folder, so the new entry point also works when launched from another working directory. The full audit rereads large TIFFs and can take time.
+
+```text
+Output/runs/<timestamp>/
+  config.json              Resolved input settings used by this run
+  status.json              running / complete / failed, with stage
+  summary.json             Combined analysis, registry lookup and audits
+  analysis/<scene>/        Masks, source.png, heatmap.png, park-review.geojson, audit.json
+  parks/<scene>-parks.geojson
+  parks/summary.json
+```
+
+Open `source.png` and `heatmap.png` to inspect the images. In QGIS, overlay the original TIFF, `heatmap.tif` and the matching `parks/<scene>-parks.geojson` to inspect park positions. PNG previews do not contain park markers.
+
+Optional arguments:
+
+```powershell
+.\run_backend.cmd --output Output/runs/team-review-01
+.\run_backend.cmd --all-districts
+.\run_backend.cmd --config data/scenes.json
+```
+
+For another backend developer:
+
+```python
+from run_backend import run_backend
+result = run_backend()  # Returns summaries; saves all outputs.
+```
+
+The existing functions and commands below remain available. `.tmp-nike/` contains local experiment helpers, not required pipeline steps. Do not run every Python file: label creation/review, historical cleanup and `grid.py` are separate tools. Human park confirmation is never automated. Tests are a separate development check, not rerun on every large analysis.
+
 ## 1. Install
 
 Run from the repository root. Use Python 3.10 or newer; the backend is tested with Python 3.12.14.
@@ -94,11 +149,13 @@ Mask values: `0=other`, `1=candidate`, `2=uncertain`, `255=NoData`. Area is meas
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
 
-After reorganization, all 46 backend tests passed. A real 2,000 ? 2,000 TIFF smoke test also passed its pixel, grid and area audit. Configuration paths, documentation links and saved artifact hashes were checked.
+The unified runner validation passed 48 backend tests, including a three-scene integration run. A real 2,000 x 2,000 TIFF also passed analysis, registry lookup and the full consistency audit through the new entry point. Full-size processing of all three original TIFFs was not repeated for this orchestration change. A real 2,000 ? 2,000 TIFF smoke test also passed its pixel, grid and area audit. Configuration paths, documentation links and saved artifact hashes were checked.
 
 ```text
 greensight/             Backend functions
-run_nike.py             Full analysis entry point
+run_backend.py          Unified analysis + park lookup + audit entry point
+run_backend.cmd         Windows launcher
+run_nike.py             Existing analysis-only entry point
 verify_parks.py         Park lookup entry point
 requirements.txt        Python dependencies
 data/scenes.json        Shared configuration
@@ -134,4 +191,4 @@ For small arrays, import `detect_green` and `make_heatmap` from `greensight`. Fo
 
 Read the [documentation index](docs/README.md), [backend handoff](docs/BACKEND-HANDOFF-th.md), [data guide](data/README.md) and [work log](docs/WORKLOG.md). Old drafts are in `docs/archive/`.
 
-Work stays on the local `nike/green-zone-functions` branch. Nothing has been pushed or submitted as a pull request.
+Use a feature branch and request teammate review before merging changes. The unified runner does not change Git state or publish anything.
